@@ -1,8 +1,11 @@
 package com.devlog.devlog.auth.service;
 
+import com.devlog.devlog.auth.dto.SignInRequest;
 import com.devlog.devlog.auth.dto.SignUpRequest;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.global.exception.BusinessException;
+import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,12 +22,10 @@ public class UserService {
 
     @Transactional
     public void signUp(SignUpRequest request) {
-        // 이미 가입된 이메일인지 체크 (옵션: 테스트 시 우선순위는 낮지만 추가해 둠)
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("이미 존재하는 유저입니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        // 비밀번호 암호화 후 저장
         UserEntity user = UserEntity.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -36,5 +37,15 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    public UserEntity signIn(SignInRequest request) {
+        UserEntity user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+        return user;
     }
 }
