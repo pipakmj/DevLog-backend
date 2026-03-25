@@ -23,12 +23,11 @@ public class UserResponse {
                 .build();
     }
 
-    public static UserResponse loginSuccess(UserEntity user, String accessToken, String refreshToken) {
+    public static UserResponse loginSuccess(UserEntity user, String accessToken) {
         return UserResponse.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .build();
     }
 }
