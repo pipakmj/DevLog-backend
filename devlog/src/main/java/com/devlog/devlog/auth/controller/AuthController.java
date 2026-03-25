@@ -11,10 +11,13 @@ import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,9 +38,29 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<UserResponse>> signIn(@RequestBody @Valid SignInRequest request) {
         UserEntity user = userService.signIn(request);
-        String token = jwtTokenProvider.createToken(user.getEmail());
-        UserResponse data = UserResponse.loginSuccess(user, token);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        userService.saveRefreshToken(user.getEmail(), refreshToken);
+        UserResponse data = UserResponse.loginSuccess(user, accessToken, refreshToken);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success("로그인이 성공적으로 완료되었습니다.", data));
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<ApiResponse<Void>> signOut(Authentication authentication) {
+        if (authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("이미 로그아웃 상태입니다", null));
+        }
+        String email = authentication.getName();
+        userService.signOut(email);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("성공적으로 로그아웃 되었습니다", null));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<Map<String, String>>> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        String newAccessToken = userService.refreshAccessToken(refreshToken);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("성공적으로 갱신되었습니다", Map.of("access_token", newAccessToken)));
     }
 }

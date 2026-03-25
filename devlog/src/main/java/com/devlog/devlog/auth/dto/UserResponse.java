@@ -13,7 +13,8 @@ import lombok.NoArgsConstructor;
 public class UserResponse {
     private String email;
     private String nickname;
-    private String token;
+    private String accessToken;
+    private String refreshToken;
 
     public static UserResponse from(String email, String nickname) {
         return UserResponse.builder()
@@ -22,11 +23,12 @@ public class UserResponse {
                 .build();
     }
 
-    public static UserResponse loginSuccess(UserEntity user, String token) {
+    public static UserResponse loginSuccess(UserEntity user, String accessToken, String refreshToken) {
         return UserResponse.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 }
