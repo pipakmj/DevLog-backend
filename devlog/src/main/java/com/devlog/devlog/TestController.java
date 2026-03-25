@@ -14,7 +14,7 @@ public class TestController {
 
     @GetMapping("/auth/login-test")
     public String loginTest(@RequestParam String id) {
-        return jwtTokenProvider.createToken(id);
+        return jwtTokenProvider.createAccessToken(id);
     }
     @GetMapping("/api/hello")
     public String hello() {
