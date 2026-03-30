@@ -2,6 +2,7 @@ package com.devlog.devlog.auth.service;
 
 import com.devlog.devlog.auth.dto.SignInRequest;
 import com.devlog.devlog.auth.dto.SignUpRequest;
+import com.devlog.devlog.auth.dto.UpdateUserInfoRequest;
 import com.devlog.devlog.auth.entity.RefreshTokenEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.RefreshTokenRepository;
@@ -63,18 +64,16 @@ public class UserService {
     public void saveRefreshToken(String email, String refreshToken) {
         LocalDateTime expiryTime = LocalDateTime.now().plusDays(14);
 
-        refreshTokenRepository.findByEmail(email).
-                ifPresentOrElse(entity -> {
-                    entity.setToken(refreshToken);
-                    entity.setExpiryTime(expiryTime);
-                },
+        refreshTokenRepository.findByEmail(email).ifPresentOrElse(entity -> {
+            entity.setToken(refreshToken);
+            entity.setExpiryTime(expiryTime);
+        },
                 () -> refreshTokenRepository.save(RefreshTokenEntity.builder()
                         .email(email)
                         .token(refreshToken)
                         .expiryTime(expiryTime)
                         .createAt(LocalDateTime.now())
-                        .build())
-                );
+                        .build()));
     }
 
     @Transactional
@@ -86,5 +85,24 @@ public class UserService {
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
         }
         return jwtTokenProvider.createAccessToken(tokenEntity.getEmail());
+    }
+
+    @Transactional(readOnly = true)
+    public UserEntity getUserInfo(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Transactional
+    public void updateUserInfo(String email, UpdateUserInfoRequest request) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        user.setNickname(request.getNickname());
+        user.setBio(request.getBio());
+        user.setGithub_url(request.getGithub_url());
+        user.setUpdated_at(LocalDateTime.now());
+
+        userRepository.save(user);
     }
 }
