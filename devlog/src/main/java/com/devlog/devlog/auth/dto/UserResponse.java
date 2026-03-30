@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 public class UserResponse {
     private String email;
     private String nickname;
+    private String bio;
+    private String github_url;
     private String accessToken;
     private String refreshToken;
 
@@ -28,6 +30,15 @@ public class UserResponse {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .accessToken(accessToken)
+                .build();
+    }
+
+    public static UserResponse getUserInfoResponse(UserEntity userEntity) {
+        return UserResponse.builder()
+                .email(userEntity.getEmail())
+                .nickname(userEntity.getNickname())
+                .bio(userEntity.getBio())
+                .github_url(userEntity.getGithub_url())
                 .build();
     }
 }
