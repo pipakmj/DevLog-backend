@@ -24,7 +24,8 @@ public class ProjectEntity {
     LocalDateTime createdAt;
     String thumbnail;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "userId", referencedColumnName = "id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     UserEntity userEntity;
 }

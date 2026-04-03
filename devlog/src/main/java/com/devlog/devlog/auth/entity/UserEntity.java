@@ -6,6 +6,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -25,4 +28,8 @@ public class UserEntity {
     String github_url;
     LocalDateTime created_at;
     LocalDateTime updated_at;
+
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProjectEntity> projects = new ArrayList<>();
 }

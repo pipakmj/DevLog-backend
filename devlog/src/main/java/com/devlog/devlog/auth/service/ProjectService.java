@@ -63,12 +63,12 @@ public class ProjectService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
         }
 
-        project.setTitle(request.getTitle());
-        project.setDescription(request.getDescription());
-        project.setDemoUrl(request.getDemoUrl());
-        project.setGithubUrl(request.getGithubUrl());
-        project.setTechStack(request.getTechStack());
-        project.setThumbnail(request.getThumbnail());
+        if (request.getTitle() != null) project.setTitle(request.getTitle());
+        if (request.getDescription() != null) project.setDescription(request.getDescription());
+        if (request.getDemoUrl() != null) project.setDemoUrl(request.getDemoUrl());
+        if (request.getGithubUrl() != null) project.setGithubUrl(request.getGithubUrl());
+        if (request.getTechStack() != null) project.setTechStack(request.getTechStack());
+        if (request.getThumbnail() != null) project.setThumbnail(request.getThumbnail());
 
         return ProjectResponse.getUserProjectResponse(project);
     }
