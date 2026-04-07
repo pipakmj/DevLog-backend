@@ -17,6 +17,12 @@ import java.util.List;
 public class ProjectController {
     private final ProjectService projectService;
 
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects() {
+        List<ProjectResponse> projects = projectService.getAllProjects();
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projects));
+    }
+
     @GetMapping("/mine")
     public ResponseEntity<ApiResponse<List<ProjectResponse>>> getUserProjects(Authentication authentication) {
         String userEmail = authentication.getName();
