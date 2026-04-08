@@ -22,7 +22,7 @@ public class ProjectController {
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects(
-            @PageableDefault(size = 9, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         List<ProjectResponse> projects = projectService.getAllProjects(pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projects));
@@ -31,7 +31,7 @@ public class ProjectController {
     @GetMapping("/mine")
     public ResponseEntity<ApiResponse<List<ProjectResponse>>> getUserProjects(
             Authentication authentication,
-            @PageableDefault(size = 9, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String userEmail = authentication.getName();
         List<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
