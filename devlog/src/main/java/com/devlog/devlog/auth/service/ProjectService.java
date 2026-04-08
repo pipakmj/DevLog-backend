@@ -23,6 +23,12 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
+    public List<ProjectResponse> getAllProjects() {
+        List<ProjectEntity> projects = projectRepository.findAll();
+        return projects.stream().map(ProjectResponse::getUserProjectResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<ProjectResponse> getUserProjects(String userEmail) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
