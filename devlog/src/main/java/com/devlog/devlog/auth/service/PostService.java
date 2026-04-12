@@ -1,5 +1,6 @@
 package com.devlog.devlog.auth.service;
 
+import com.devlog.devlog.auth.dto.PostDetailResponse;
 import com.devlog.devlog.auth.dto.PostRequest;
 import com.devlog.devlog.auth.dto.PostResponse;
 import com.devlog.devlog.auth.entity.PostEntity;
@@ -35,6 +36,13 @@ public class PostService {
         return postRepository.findAll().stream()
                 .map(PostResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PostDetailResponse getDetailPost(Long postId) {
+        return postRepository.findById(postId)
+                .map(PostDetailResponse::from)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 
     @Transactional

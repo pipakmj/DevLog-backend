@@ -1,5 +1,6 @@
 package com.devlog.devlog.auth.controller;
 
+import com.devlog.devlog.auth.dto.PostDetailResponse;
 import com.devlog.devlog.auth.dto.PostRequest;
 import com.devlog.devlog.auth.dto.PostResponse;
 import com.devlog.devlog.auth.service.PostService;
@@ -28,5 +29,10 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostResponse>>> getAllPosts() {
         return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postService.getAllPosts()));
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<ApiResponse<PostDetailResponse>> getDetailPost(@PathVariable Long postId) {
+        return ResponseEntity.ok(ApiResponse.success("상세 포스트 조회가 성공적으로 완료되었습니다.", postService.getDetailPost(postId)));
     }
 }
