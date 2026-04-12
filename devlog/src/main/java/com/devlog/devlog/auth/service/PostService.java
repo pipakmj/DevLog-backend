@@ -1,6 +1,7 @@
 package com.devlog.devlog.auth.service;
 
 import com.devlog.devlog.auth.dto.PostRequest;
+import com.devlog.devlog.auth.dto.PostResponse;
 import com.devlog.devlog.auth.entity.PostEntity;
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.entity.TagEntity;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,16 +30,22 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
+    public List<PostResponse> getAllPosts() {
+        return postRepository.findAll().stream()
+                .map(PostResponse::from)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void createPost(String userEmail, PostRequest postRequest) {
-
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         ProjectEntity project = projectRepository.findById(postRequest.getProjectId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
-        if(project.getUserEntity().getId() != user.getId()) {
+        if (project.getUserEntity().getId() != user.getId()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
         }
 
@@ -51,9 +59,10 @@ public class PostService {
                 .views(0)
                 .build();
 
-        if(postRequest.getTags() != null && !postRequest.getTags().isEmpty()) {
+        if (postRequest.getTags() != null && !postRequest.getTags().isEmpty()) {
             Set<TagEntity> tagEntities = Arrays.stream(postRequest.getTags().split(","))
                     .map(String::trim)
+                    .filter(tagName -> !tagName.isEmpty())
                     .map(tagName -> tagRepository.findByName(tagName)
                             .orElseGet(() -> tagRepository.save(TagEntity.builder().name(tagName).build())))
                     .collect(Collectors.toSet());

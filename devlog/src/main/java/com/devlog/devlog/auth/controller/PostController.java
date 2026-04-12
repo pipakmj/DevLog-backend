@@ -1,7 +1,7 @@
 package com.devlog.devlog.auth.controller;
 
 import com.devlog.devlog.auth.dto.PostRequest;
-import com.devlog.devlog.auth.entity.PostEntity;
+import com.devlog.devlog.auth.dto.PostResponse;
 import com.devlog.devlog.auth.service.PostService;
 import com.devlog.devlog.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,15 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse> createPost(Authentication authentication, @RequestBody PostRequest postRequest) {
+    public ResponseEntity<ApiResponse<Void>> createPost(Authentication authentication,
+            @RequestBody PostRequest postRequest) {
         String userEmail = authentication.getName();
         postService.createPost(userEmail, postRequest);
         return ResponseEntity.ok(ApiResponse.success("포스트가 성공적으로 저장되었습니다."));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getAllPosts() {
+        return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postService.getAllPosts()));
     }
 }
