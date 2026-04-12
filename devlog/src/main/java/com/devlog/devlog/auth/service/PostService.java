@@ -1,0 +1,65 @@
+package com.devlog.devlog.auth.service;
+
+import com.devlog.devlog.auth.dto.PostRequest;
+import com.devlog.devlog.auth.entity.PostEntity;
+import com.devlog.devlog.auth.entity.ProjectEntity;
+import com.devlog.devlog.auth.entity.TagEntity;
+import com.devlog.devlog.auth.entity.UserEntity;
+import com.devlog.devlog.auth.repository.PostRepository;
+import com.devlog.devlog.auth.repository.ProjectRepository;
+import com.devlog.devlog.auth.repository.TagRepository;
+import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.global.exception.BusinessException;
+import com.devlog.devlog.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PostService {
+    private final ProjectRepository projectRepository;
+    private final TagRepository tagRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public void createPost(String userEmail, PostRequest postRequest) {
+
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        ProjectEntity project = projectRepository.findById(postRequest.getProjectId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        if(project.getUserEntity().getId() != user.getId()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
+        }
+
+        PostEntity postEntity = PostEntity.builder()
+                .title(postRequest.getTitle())
+                .content(postRequest.getContent())
+                .user(user)
+                .project(project)
+                .created_at(LocalDateTime.now())
+                .updated_at(LocalDateTime.now())
+                .views(0)
+                .build();
+
+        if(postRequest.getTags() != null && !postRequest.getTags().isEmpty()) {
+            Set<TagEntity> tagEntities = Arrays.stream(postRequest.getTags().split(","))
+                    .map(String::trim)
+                    .map(tagName -> tagRepository.findByName(tagName)
+                            .orElseGet(() -> tagRepository.save(TagEntity.builder().name(tagName).build())))
+                    .collect(Collectors.toSet());
+            postEntity.setTags(tagEntities);
+        }
+
+        postRepository.save(postEntity);
+    }
+}
