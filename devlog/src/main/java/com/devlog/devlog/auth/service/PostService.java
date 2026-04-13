@@ -16,6 +16,7 @@ import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -43,6 +44,13 @@ public class PostService {
         return postRepository.findById(postId)
                 .map(PostDetailResponse::from)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    }
+    @Transactional
+    public void updatePostViewCount(Long postId) {
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        int updatedViews = postEntity.getViews() + 1;
+        postEntity.setViews(updatedViews);
     }
 
     @Transactional

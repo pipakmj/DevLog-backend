@@ -35,4 +35,10 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDetailResponse>> getDetailPost(@PathVariable Long postId) {
         return ResponseEntity.ok(ApiResponse.success("상세 포스트 조회가 성공적으로 완료되었습니다.", postService.getDetailPost(postId)));
     }
+
+    @PatchMapping("/{postId}/views")
+    public ResponseEntity<ApiResponse<Void>> updatePostViewCount(@PathVariable Long postId) {
+        postService.updatePostViewCount(postId);
+        return ResponseEntity.ok(ApiResponse.success("조회수 업데이트가 성공적으로 완료되었습니다."));
+    }
 }
