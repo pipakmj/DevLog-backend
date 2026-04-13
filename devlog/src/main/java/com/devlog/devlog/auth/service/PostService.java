@@ -16,7 +16,6 @@ import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -86,5 +85,16 @@ public class PostService {
         }
 
         postRepository.save(postEntity);
+    }
+
+    @Transactional
+    public void deletePost(String userEmail, Long postId) {
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        if(!postEntity.getUser().getEmail().equals(userEmail)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_POST_ACCESS);
+        }
+
+        postRepository.delete(postEntity);
     }
 }

@@ -41,4 +41,11 @@ public class PostController {
         postService.updatePostViewCount(postId);
         return ResponseEntity.ok(ApiResponse.success("조회수 업데이트가 성공적으로 완료되었습니다."));
     }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication, @PathVariable Long postId) {
+        String userEmail = authentication.getName();
+        postService.deletePost(userEmail, postId);
+        return ResponseEntity.ok(ApiResponse.success("포스트가 성공적으로 삭제되었습니다"));
+    }
 }
