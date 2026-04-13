@@ -26,6 +26,16 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success("포스트가 성공적으로 저장되었습니다."));
     }
 
+    @PatchMapping("/edit/{postId}")
+    public ResponseEntity<ApiResponse<Void>> updatePost(
+            Authentication authentication,
+            @PathVariable Long postId ,
+            @RequestBody PostRequest postRequest) {
+        String userEmail = authentication.getName();
+        postService.updatePost(userEmail, postId, postRequest);
+        return ResponseEntity.ok(ApiResponse.success("포스트 업데이트가 성공적으로 완료되었습니다. "));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostResponse>>> getAllPosts() {
         return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postService.getAllPosts()));
