@@ -11,6 +11,7 @@ import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,21 +26,16 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
-    public List<ProjectResponse> getAllProjects(Pageable pageable) {
-        Page<ProjectEntity> projects = projectRepository.findAll(pageable);
-        return projects.stream().map(ProjectResponse::getUserProjectResponse).collect(Collectors.toList());
+    public Slice<ProjectResponse> getAllProjects(Pageable pageable) {
+        return projectRepository.findAll(pageable).map(ProjectResponse::getUserProjectResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectResponse> getUserProjects(String userEmail, Pageable pageable) {
+    public Slice<ProjectResponse> getUserProjects(String userEmail, Pageable pageable) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Page<ProjectEntity> projects = projectRepository.findByUserEntityId(user.getId(), pageable);
-
-        return projects.stream()
-                .map(ProjectResponse::getUserProjectResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByUserEntityId(user.getId(), pageable).map(ProjectResponse::getUserProjectResponse);
     }
 
     @Transactional

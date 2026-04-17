@@ -10,6 +10,7 @@ import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -26,20 +27,20 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects(
+    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getAllProjects(
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<ProjectResponse> projects = projectService.getAllProjects(pageable);
+        Slice<ProjectResponse> projects = projectService.getAllProjects(pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projects));
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getUserProjects(
+    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getUserProjects(
             Authentication authentication,
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String userEmail = authentication.getName();
-        List<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
+        Slice<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projects));
     }
 

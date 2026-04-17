@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,7 +42,8 @@ public class SecurityConfig {
                         .sessionManagement(session -> session
                                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                        .requestMatchers("/auth/signin", "/auth/signup", "/auth/refresh", "/api/project/all", "/error").permitAll()
+                                        .requestMatchers("/auth/signin", "/auth/signup", "/auth/refresh", "/error").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/project/all", "/api/project/{id}", "/api/posts/**", "/api/posts/{postId}").permitAll()
                                         .requestMatchers("/auth/signout", "/api/**").authenticated()
                                         .anyRequest().authenticated())
                         .exceptionHandling(exception -> exception
@@ -68,7 +70,7 @@ public class SecurityConfig {
         @Bean
         protected CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+                configuration.setAllowedOrigins(Arrays.asList("https://dev-log-frontend-eob7.vercel.app/","http://localhost:5173"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(Arrays.asList("*"));
                 configuration.setAllowCredentials(true);
