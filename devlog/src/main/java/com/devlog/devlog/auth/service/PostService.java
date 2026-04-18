@@ -185,9 +185,16 @@ public class PostService {
                 .content(commentRequest.getContent())
                 .parentId(commentRequest.getParentId())
                 .createdAt(LocalDateTime.now())
-                .user(user)
-                .post(postEntity)
+                .userEntity(user)
+                .postEntity(postEntity)
                 .build();
         commentRepository.save(commentEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getPostComments(Long postId) {
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        return commentRepository.findByPostEntityId(postEntity.getId()).stream().map(CommentResponse::getPostComments).toList();
     }
 }

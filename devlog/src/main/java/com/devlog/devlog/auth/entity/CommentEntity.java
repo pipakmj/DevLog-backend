@@ -28,11 +28,11 @@ public class CommentEntity {
     @ManyToOne
     @JoinColumn(name="userId")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UserEntity user;
+    private UserEntity userEntity;
 
     @ManyToOne
     @JoinColumn(name="postId")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    PostEntity post;
+    PostEntity postEntity;
 
 }

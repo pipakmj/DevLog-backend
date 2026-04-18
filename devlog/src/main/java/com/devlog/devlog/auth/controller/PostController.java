@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -76,5 +78,10 @@ public class PostController {
         String userEmail = authentication.getName();
         postService.createPostComment(userEmail, postId, commentRequest);
         return ResponseEntity.ok(ApiResponse.success("댓글 작성이 성공적으로 완료되었습니다."));
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getPostComments(@PathVariable Long postId) {
+        return ResponseEntity.ok(ApiResponse.success("댓글 조회가 성공적으로 완료되었습니다.", postService.getPostComments(postId)));
     }
 }
