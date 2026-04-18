@@ -1,12 +1,10 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.post.LikesResponse;
-import com.devlog.devlog.auth.dto.post.PostDetailResponse;
-import com.devlog.devlog.auth.dto.post.PostRequest;
-import com.devlog.devlog.auth.dto.post.PostResponse;
+import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.service.PostService;
 import com.devlog.devlog.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -71,5 +69,12 @@ public class PostController {
     public ResponseEntity<ApiResponse<LikesResponse>> likePostStatus(Authentication authentication, @PathVariable Long postId) {
         String userEmail = (authentication != null) ? authentication.getName() : null;
         return ResponseEntity.ok(ApiResponse.success("좋아요 수 조회가 성공적으로 완료되었습니다", postService.likePostStatus(userEmail, postId)));
+    }
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse<Void>> createPostComment(Authentication authentication, @PathVariable Long postId, @RequestBody CommentRequest commentRequest) {
+        String userEmail = authentication.getName();
+        postService.createPostComment(userEmail, postId, commentRequest);
+        return ResponseEntity.ok(ApiResponse.success("댓글 작성이 성공적으로 완료되었습니다."));
     }
 }

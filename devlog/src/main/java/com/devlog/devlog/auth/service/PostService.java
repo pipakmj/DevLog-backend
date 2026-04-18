@@ -1,9 +1,6 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.post.LikesResponse;
-import com.devlog.devlog.auth.dto.post.PostDetailResponse;
-import com.devlog.devlog.auth.dto.post.PostRequest;
-import com.devlog.devlog.auth.dto.post.PostResponse;
+import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.entity.*;
 import com.devlog.devlog.auth.repository.*;
 import com.devlog.devlog.global.exception.BusinessException;
@@ -29,6 +26,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional(readOnly = true)
     public Page<PostResponse> getAllPosts(Pageable pageable) {
@@ -175,5 +173,21 @@ public class PostService {
                 .likeCount(likeCount)
                 .isLiked(isLiked)
                 .build();
+    }
+
+    @Transactional
+    public void createPostComment(String userEmail, Long postId, CommentRequest commentRequest) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        CommentEntity commentEntity = CommentEntity.builder()
+                .content(commentRequest.getContent())
+                .parentId(commentRequest.getParentId())
+                .createdAt(LocalDateTime.now())
+                .user(user)
+                .post(postEntity)
+                .build();
+        commentRepository.save(commentEntity);
     }
 }
