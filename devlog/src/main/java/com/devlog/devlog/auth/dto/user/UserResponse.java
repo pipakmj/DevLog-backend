@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto;
+package com.devlog.devlog.auth.dto.user;
 
 import com.devlog.devlog.auth.entity.UserEntity;
 import lombok.AllArgsConstructor;

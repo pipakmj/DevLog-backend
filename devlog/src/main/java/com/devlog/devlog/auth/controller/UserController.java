@@ -1,7 +1,7 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.UpdateUserInfoRequest;
-import com.devlog.devlog.auth.dto.UserResponse;
+import com.devlog.devlog.auth.dto.user.UpdateUserInfoRequest;
+import com.devlog.devlog.auth.dto.user.UserResponse;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.service.UserService;
 import com.devlog.devlog.global.common.ApiResponse;

@@ -1,41 +1,51 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.ProjectRequest;
-import com.devlog.devlog.auth.dto.ProjectResponse;
+import com.devlog.devlog.auth.dto.project.ProjectRequest;
+import com.devlog.devlog.auth.dto.project.ProjectResponse;
+import com.devlog.devlog.auth.entity.ProjectEntity;
+import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.service.ProjectService;
 import com.devlog.devlog.global.common.ApiResponse;
+import com.devlog.devlog.global.exception.BusinessException;
+import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/project")
 @RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
+    private final ProjectRepository projectRepository;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects(
+    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getAllProjects(
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<ProjectResponse> projects = projectService.getAllProjects(pageable);
+        Slice<ProjectResponse> projects = projectService.getAllProjects(pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projects));
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getUserProjects(
+    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getUserProjects(
             Authentication authentication,
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String userEmail = authentication.getName();
-        List<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
+        Slice<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projects));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProjectResponse>> getDetailProject(@PathVariable Long id) {
+        ProjectEntity project = projectRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 상세 내용을 가져왔습니다. ", ProjectResponse.getUserProjectResponse(project)));
     }
 
     @PostMapping("/create")

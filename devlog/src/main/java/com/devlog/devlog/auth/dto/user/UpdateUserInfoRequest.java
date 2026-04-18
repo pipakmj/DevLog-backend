@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto;
+package com.devlog.devlog.auth.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
