@@ -1,15 +1,14 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.SignInRequest;
-import com.devlog.devlog.auth.dto.SignUpRequest;
-import com.devlog.devlog.auth.dto.UserResponse;
+import com.devlog.devlog.auth.dto.auth.SignInRequest;
+import com.devlog.devlog.auth.dto.auth.SignUpRequest;
+import com.devlog.devlog.auth.dto.user.UserResponse;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.service.UserService;
 import com.devlog.devlog.global.common.ApiResponse;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import com.devlog.devlog.global.provider.JwtTokenProvider;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;

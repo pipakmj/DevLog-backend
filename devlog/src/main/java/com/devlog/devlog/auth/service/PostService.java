@@ -1,16 +1,11 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.PostDetailResponse;
-import com.devlog.devlog.auth.dto.PostRequest;
-import com.devlog.devlog.auth.dto.PostResponse;
-import com.devlog.devlog.auth.entity.PostEntity;
-import com.devlog.devlog.auth.entity.ProjectEntity;
-import com.devlog.devlog.auth.entity.TagEntity;
-import com.devlog.devlog.auth.entity.UserEntity;
-import com.devlog.devlog.auth.repository.PostRepository;
-import com.devlog.devlog.auth.repository.ProjectRepository;
-import com.devlog.devlog.auth.repository.TagRepository;
-import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.auth.dto.post.LikesResponse;
+import com.devlog.devlog.auth.dto.post.PostDetailResponse;
+import com.devlog.devlog.auth.dto.post.PostRequest;
+import com.devlog.devlog.auth.dto.post.PostResponse;
+import com.devlog.devlog.auth.entity.*;
+import com.devlog.devlog.auth.repository.*;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +28,7 @@ public class PostService {
     private final TagRepository tagRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     @Transactional(readOnly = true)
     public Page<PostResponse> getAllPosts(Pageable pageable) {
@@ -138,5 +135,45 @@ public class PostService {
         }
 
         postRepository.delete(postEntity);
+    }
+
+    @Transactional
+    public LikesResponse likePost(String userEmail, Long postId) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        Optional<LikeEntity> existingLike = likeRepository.findByUserEntityAndPostEntity(user, postEntity);
+        if(existingLike.isPresent()) {
+            likeRepository.delete(existingLike.get());
+        }else{
+            LikeEntity likeEntity = LikeEntity.builder()
+                    .userEntity(user)
+                    .postEntity(postEntity)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            likeRepository.save(likeEntity);
+        }
+        return likePostStatus(userEmail, postId);
+    }
+
+    @Transactional(readOnly = true)
+    public LikesResponse likePostStatus(String userEmail, Long postId) {
+        int likeCount = likeRepository.countByPostEntityId(postId);
+
+        if (userEmail == null) {
+            return LikesResponse.builder()
+                    .likeCount(likeCount)
+                    .isLiked(false)
+                    .build();
+        }
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        boolean isLiked = likeRepository.existsByUserEntityIdAndPostEntityId(user.getId(), postId);
+        return LikesResponse.builder()
+                .likeCount(likeCount)
+                .isLiked(isLiked)
+                .build();
     }
 }

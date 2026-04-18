@@ -1,8 +1,8 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.SignInRequest;
-import com.devlog.devlog.auth.dto.SignUpRequest;
-import com.devlog.devlog.auth.dto.UpdateUserInfoRequest;
+import com.devlog.devlog.auth.dto.auth.SignInRequest;
+import com.devlog.devlog.auth.dto.auth.SignUpRequest;
+import com.devlog.devlog.auth.dto.user.UpdateUserInfoRequest;
 import com.devlog.devlog.auth.entity.RefreshTokenEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.RefreshTokenRepository;

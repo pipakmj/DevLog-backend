@@ -1,8 +1,11 @@
-package com.devlog.devlog.auth.dto;
+package com.devlog.devlog.auth.dto.post;
 
 import com.devlog.devlog.auth.entity.PostEntity;
 import com.devlog.devlog.auth.entity.TagEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,26 +15,30 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+public class PostDetailResponse {
     private Long id;
     private String title;
+    private String content;
     private String author;
     private LocalDateTime date;
     private List<String> tags;
-    private int views;
     private String projectName;
+    private Long projectId;
+    private int views;
 
-    public static PostResponse from(PostEntity post) {
-        return PostResponse.builder()
+    public static PostDetailResponse from(PostEntity post) {
+        return PostDetailResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
+                .content(post.getContent())
                 .author(post.getUser().getNickname())
                 .date(post.getCreated_at())
                 .tags(post.getTags().stream()
                         .map(TagEntity::getName)
                         .collect(Collectors.toList()))
-                .views(post.getViews())
                 .projectName(post.getProject().getTitle())
+                .projectId(post.getProject().getId())
+                .views(post.getViews())
                 .build();
     }
 }

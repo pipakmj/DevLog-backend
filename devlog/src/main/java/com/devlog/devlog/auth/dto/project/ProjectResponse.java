@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto;
+package com.devlog.devlog.auth.dto.project;
 
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import lombok.*;
