@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .authorizeHttpRequests(auth -> auth
                                         .requestMatchers("/auth/signin", "/auth/signup", "/auth/refresh", "/error").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/project/all", "/api/project/{id}", "/api/posts/**", "/api/posts/{postId}").permitAll()
+                                        .requestMatchers(HttpMethod.PATCH, "/api/posts/{postId}/views").permitAll()
                                         .requestMatchers("/auth/signout", "/api/**").authenticated()
                                         .anyRequest().authenticated())
                         .exceptionHandling(exception -> exception

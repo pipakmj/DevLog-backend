@@ -1,7 +1,7 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.ProjectRequest;
-import com.devlog.devlog.auth.dto.ProjectResponse;
+import com.devlog.devlog.auth.dto.project.ProjectRequest;
+import com.devlog.devlog.auth.dto.project.ProjectResponse;
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.ProjectRepository;
@@ -9,15 +9,12 @@ import com.devlog.devlog.auth.repository.UserRepository;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

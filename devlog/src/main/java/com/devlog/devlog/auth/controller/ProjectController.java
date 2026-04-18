@@ -1,7 +1,7 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.ProjectRequest;
-import com.devlog.devlog.auth.dto.ProjectResponse;
+import com.devlog.devlog.auth.dto.project.ProjectRequest;
+import com.devlog.devlog.auth.dto.project.ProjectResponse;
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.service.ProjectService;
@@ -16,8 +16,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/project")
