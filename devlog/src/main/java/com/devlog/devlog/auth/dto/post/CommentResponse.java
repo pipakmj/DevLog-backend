@@ -17,6 +17,7 @@ public class CommentResponse {
     private Long commentId;
     private String content;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private String nickname;
     private Long parentId;
     @JsonProperty("isDeleted")
@@ -27,6 +28,7 @@ public class CommentResponse {
                 .commentId(commentEntity.getId())
                 .content(commentEntity.isDeleted() ? "삭제된 댓글입니다." : commentEntity.getContent())
                 .createdAt(commentEntity.getCreatedAt())
+                .updatedAt(commentEntity.getUpdatedAt())
                 .parentId(commentEntity.getParentId())
                 .isDeleted(commentEntity.isDeleted())
                 .nickname(commentEntity.isDeleted() ? "알 수 없음" : commentEntity.getUserEntity().getNickname())

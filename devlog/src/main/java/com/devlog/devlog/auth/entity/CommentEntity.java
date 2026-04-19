@@ -23,6 +23,8 @@ public class CommentEntity {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     private Long parentId;
 
     private  boolean isDeleted;
