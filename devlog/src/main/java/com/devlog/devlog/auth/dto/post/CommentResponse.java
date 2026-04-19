@@ -1,6 +1,7 @@
 package com.devlog.devlog.auth.dto.post;
 
 import com.devlog.devlog.auth.entity.CommentEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,14 +19,17 @@ public class CommentResponse {
     private LocalDateTime createdAt;
     private String nickname;
     private Long parentId;
+    @JsonProperty("isDeleted")
+    private boolean isDeleted;
 
     public static CommentResponse getPostComments(CommentEntity commentEntity) {
         return CommentResponse.builder()
                 .commentId(commentEntity.getId())
-                .content(commentEntity.getContent())
+                .content(commentEntity.isDeleted() ? "삭제된 댓글입니다." : commentEntity.getContent())
                 .createdAt(commentEntity.getCreatedAt())
                 .parentId(commentEntity.getParentId())
-                .nickname(commentEntity.getUserEntity().getNickname())
+                .isDeleted(commentEntity.isDeleted())
+                .nickname(commentEntity.isDeleted() ? "알 수 없음" : commentEntity.getUserEntity().getNickname())
                 .build();
     }
 }

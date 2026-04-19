@@ -84,4 +84,11 @@ public class PostController {
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getPostComments(@PathVariable Long postId) {
         return ResponseEntity.ok(ApiResponse.success("댓글 조회가 성공적으로 완료되었습니다.", postService.getPostComments(postId)));
     }
+
+    @DeleteMapping("/{commentId}/comments")
+    public ResponseEntity<ApiResponse<Void>> deletePostComment(Authentication authentication, @PathVariable Long commentId) {
+        String userEmail = authentication.getName();
+        postService.deletePostComment(userEmail, commentId);
+        return ResponseEntity.ok(ApiResponse.success("댓글 작성이 성공적으로 삭제되었습니다."));
+    }
 }

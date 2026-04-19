@@ -185,6 +185,7 @@ public class PostService {
                 .content(commentRequest.getContent())
                 .parentId(commentRequest.getParentId())
                 .createdAt(LocalDateTime.now())
+                .isDeleted(false)
                 .userEntity(user)
                 .postEntity(postEntity)
                 .build();
@@ -196,5 +197,15 @@ public class PostService {
         PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         return commentRepository.findByPostEntityId(postEntity.getId()).stream().map(CommentResponse::getPostComments).toList();
+    }
+
+    @Transactional
+    public void deletePostComment(String userEmail , Long commentId) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+        if(!commentEntity.getUserEntity().getEmail().equals(userEmail)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_COMMENT_ACCESS);
+        }
+        commentEntity.setDeleted(true);
     }
 }

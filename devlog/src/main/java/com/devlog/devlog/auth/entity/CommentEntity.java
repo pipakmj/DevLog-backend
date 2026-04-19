@@ -25,6 +25,8 @@ public class CommentEntity {
 
     private Long parentId;
 
+    private  boolean isDeleted;
+
     @ManyToOne
     @JoinColumn(name="userId")
     @OnDelete(action = OnDeleteAction.CASCADE)
