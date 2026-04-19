@@ -1,9 +1,6 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.post.LikesResponse;
-import com.devlog.devlog.auth.dto.post.PostDetailResponse;
-import com.devlog.devlog.auth.dto.post.PostRequest;
-import com.devlog.devlog.auth.dto.post.PostResponse;
+import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.entity.*;
 import com.devlog.devlog.auth.repository.*;
 import com.devlog.devlog.global.exception.BusinessException;
@@ -29,6 +26,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional(readOnly = true)
     public Page<PostResponse> getAllPosts(Pageable pageable) {
@@ -175,5 +173,51 @@ public class PostService {
                 .likeCount(likeCount)
                 .isLiked(isLiked)
                 .build();
+    }
+
+    @Transactional
+    public void createPostComment(String userEmail, Long postId, CommentRequest commentRequest) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        CommentEntity commentEntity = CommentEntity.builder()
+                .content(commentRequest.getContent())
+                .parentId(commentRequest.getParentId())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(null)
+                .isDeleted(false)
+                .userEntity(user)
+                .postEntity(postEntity)
+                .build();
+        commentRepository.save(commentEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getPostComments(Long postId) {
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        return commentRepository.findByPostEntityId(postEntity.getId()).stream().map(CommentResponse::getPostComments).toList();
+    }
+
+    @Transactional
+    public void deletePostComment(String userEmail , Long commentId) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+        if(!commentEntity.getUserEntity().getEmail().equals(userEmail)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_COMMENT_ACCESS);
+        }
+        commentEntity.setDeleted(true);
+    }
+
+    @Transactional
+    public void updatePostComment(String userEmail, Long commentId, CommentRequest commentRequest) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+        if(!commentEntity.getUserEntity().getEmail().equals(userEmail)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_COMMENT_ACCESS);
+        }
+        commentEntity.setContent(commentRequest.getContent());
+        commentEntity.setUpdatedAt(LocalDateTime.now());
     }
 }
