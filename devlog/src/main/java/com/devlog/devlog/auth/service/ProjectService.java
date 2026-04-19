@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,16 @@ public class ProjectService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return projectRepository.findByUserEntityId(user.getId(), pageable).map(ProjectResponse::getUserProjectResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectResponse> getUserProjectsToPost(String userEmail) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return projectRepository.findByUserEntityId(user.getId())
+                .stream()
+                .map(ProjectResponse::getUserProjectResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
