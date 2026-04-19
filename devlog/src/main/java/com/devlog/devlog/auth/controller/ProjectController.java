@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/project")
 @RequiredArgsConstructor
@@ -39,6 +41,13 @@ public class ProjectController {
     ) {
         String userEmail = authentication.getName();
         Slice<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projects));
+    }
+
+    @GetMapping("/mine/post")
+    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getUserProjectsToPost(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<ProjectResponse> projects = projectService.getUserProjectsToPost(userEmail);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projects));
     }
 
