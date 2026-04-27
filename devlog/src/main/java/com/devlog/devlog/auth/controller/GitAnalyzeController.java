@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/github")
@@ -51,6 +53,7 @@ public class GitAnalyzeController {
     private GitAnalyzeResponse buildResponse(List<String> techStack, String aiResult) {
         String description = "";
         List<String> features = new ArrayList<>();
+        Set<String> fianlTechStack = new HashSet<>(techStack);
         try {
             // AI가 반환한 JSON 문자열 파싱
             // Gemini가 ```json ... ``` 으로 감싸서 줄 수 있으므로 제거
@@ -60,6 +63,11 @@ public class GitAnalyzeController {
                     .trim();
             JsonNode json = objectMapper.readTree(cleaned);
             description = json.get("description").asText();
+            if(json.has("techStack")) {
+                for(JsonNode tech : json.get("techStack")) {
+                    fianlTechStack.add(tech.asText());
+                }
+            }
             for (JsonNode feature : json.get("features")) {
                 features.add(feature.asText());
             }
@@ -68,7 +76,7 @@ public class GitAnalyzeController {
             description = aiResult;
         }
         return GitAnalyzeResponse.builder()
-                .techStack(techStack)
+                .techStack(new ArrayList<>(fianlTechStack))
                 .description(description)
                 .features(features)
                 .build();

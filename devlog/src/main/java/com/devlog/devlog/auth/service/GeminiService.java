@@ -64,9 +64,11 @@ public class GeminiService {
 
                                 위 정보를 바탕으로 아래 형식에 맞춰 **정확히 JSON만** 응답해주세요.
                                 다른 설명이나 마크다운 없이 순수 JSON만 출력하세요.
+                                techStack을 뽑을 땐 README에 명시된 기술만 뽑아주세요.
 
                                 {
                                   "description": "프로젝트 설명 (2~3문장, 한국어)",
+                                  "techStack": ["기술 스택1", "기술 스택2", "기술 스택3"],
                                   "features": ["주요 기능1", "주요 기능2", "주요 기능3"]
                                 }
                                 """.formatted(readme, commitText);
