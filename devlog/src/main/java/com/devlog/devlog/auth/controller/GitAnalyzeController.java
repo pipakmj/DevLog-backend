@@ -9,6 +9,7 @@ import com.devlog.devlog.global.common.ApiResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +32,7 @@ public class GitAnalyzeController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/analyze")
+    @Cacheable(value = "gitAnalyzeCache", key = "#request.gitUrl")
     public ResponseEntity<ApiResponse<GitAnalyzeResponse>> analyzeRepo(@RequestBody GitAnalyzeRequest request) {
         try {
             String ownerRepo = gitHubApiService.extractOwnerRepo(request.getGitUrl());
