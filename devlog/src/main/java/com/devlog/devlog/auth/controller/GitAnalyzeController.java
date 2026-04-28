@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/github")
@@ -34,26 +35,36 @@ public class GitAnalyzeController {
         try {
             String ownerRepo = gitHubApiService.extractOwnerRepo(request.getGitUrl());
 
-            List<String> rootFiles = gitHubApiService.getRootFiles(ownerRepo);
-            List<String> techStack = techStackExtractor.extractTechStack(rootFiles);
+            // 3개의 GitHub API 호출을 병렬로 실행
+            CompletableFuture<List<String>> rootFilesFuture = CompletableFuture.supplyAsync(
+                    () -> gitHubApiService.getRootFiles(ownerRepo));
+            CompletableFuture<String> readmeFuture = CompletableFuture.supplyAsync(
+                    () -> gitHubApiService.getReadme(ownerRepo));
+            CompletableFuture<List<String>> commitsFuture = CompletableFuture.supplyAsync(
+                    () -> gitHubApiService.getRecentCommits(ownerRepo, 20));
 
-            String readme = gitHubApiService.getReadme(ownerRepo);
-            List<String> commits = gitHubApiService.getRecentCommits(ownerRepo, 100);
+            CompletableFuture.allOf(rootFilesFuture, readmeFuture, commitsFuture).join();
+
+            List<String> rootFiles = rootFilesFuture.get();
+            String readme = readmeFuture.get();
+            List<String> commits = commitsFuture.get();
+
+            List<String> techStack = techStackExtractor.extractTechStack(rootFiles);
 
             String aiResult = geminiService.summarize(readme, commits);
 
             GitAnalyzeResponse response = buildResponse(techStack, aiResult);
             return ResponseEntity.ok(ApiResponse.success("프로젝트 분석이 완료 되었습니다.", response));
         } catch (Exception e) {
-            e.printStackTrace(); // 콘솔에 실제 에러 로그를 출력합니다.
-            throw e;
+            e.printStackTrace();
+            throw new RuntimeException("프로젝트 분석 중 오류가 발생했습니다.", e);
         }
     }
 
     private GitAnalyzeResponse buildResponse(List<String> techStack, String aiResult) {
         String description = "";
         List<String> features = new ArrayList<>();
-        Set<String> fianlTechStack = new HashSet<>(techStack);
+        Set<String> finalTechStack = new HashSet<>(techStack);
         try {
             // AI가 반환한 JSON 문자열 파싱
             // Gemini가 ```json ... ``` 으로 감싸서 줄 수 있으므로 제거
@@ -63,9 +74,9 @@ public class GitAnalyzeController {
                     .trim();
             JsonNode json = objectMapper.readTree(cleaned);
             description = json.get("description").asText();
-            if(json.has("techStack")) {
-                for(JsonNode tech : json.get("techStack")) {
-                    fianlTechStack.add(tech.asText());
+            if (json.has("techStack")) {
+                for (JsonNode tech : json.get("techStack")) {
+                    finalTechStack.add(tech.asText());
                 }
             }
             for (JsonNode feature : json.get("features")) {
@@ -76,7 +87,7 @@ public class GitAnalyzeController {
             description = aiResult;
         }
         return GitAnalyzeResponse.builder()
-                .techStack(new ArrayList<>(fianlTechStack))
+                .techStack(new ArrayList<>(finalTechStack))
                 .description(description)
                 .features(features)
                 .build();
