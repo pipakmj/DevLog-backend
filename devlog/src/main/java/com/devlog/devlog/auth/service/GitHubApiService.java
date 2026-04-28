@@ -21,7 +21,7 @@ public class GitHubApiService {
 
     private final RestTemplate restTemplate;
     private static final String GITHUB_API = "https://api.github.com";
-    @Value("${GITHUB_TOKEN}")
+    @Value("${GITHUB_TOKEN:}")
     private String githubToken;
 
     public String extractOwnerRepo(String githubUrl) {
