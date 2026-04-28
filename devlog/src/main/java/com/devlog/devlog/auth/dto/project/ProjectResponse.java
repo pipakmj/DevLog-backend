@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProjectResponse {
     private Long id;
+    private int userId;
     private String title;
     private String description;
     private String demoUrl;
@@ -21,6 +22,7 @@ public class ProjectResponse {
     public static ProjectResponse getUserProjectResponse(ProjectEntity projectEntity) {
         return ProjectResponse.builder()
                 .id(projectEntity.getId())
+                .userId(projectEntity.getUserEntity().getId())
                 .title(projectEntity.getTitle())
                 .description(projectEntity.getDescription())
                 .demoUrl(projectEntity.getDemoUrl())

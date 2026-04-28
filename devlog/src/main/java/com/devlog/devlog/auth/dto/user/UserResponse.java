@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
+    private int id;
     private String email;
     private String nickname;
     private String bio;
@@ -35,6 +36,7 @@ public class UserResponse {
 
     public static UserResponse getUserInfoResponse(UserEntity userEntity) {
         return UserResponse.builder()
+                .id(userEntity.getId())
                 .email(userEntity.getEmail())
                 .nickname(userEntity.getNickname())
                 .bio(userEntity.getBio())
