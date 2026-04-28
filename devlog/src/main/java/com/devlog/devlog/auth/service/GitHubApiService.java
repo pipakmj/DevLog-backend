@@ -2,6 +2,7 @@ package com.devlog.devlog.auth.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,8 @@ public class GitHubApiService {
 
     private final RestTemplate restTemplate;
     private static final String GITHUB_API = "https://api.github.com";
+    @Value("${GITHUB_TOKEN}")
+    private String githubToken;
 
     public String extractOwnerRepo(String githubUrl) {
         String path = githubUrl
@@ -31,9 +34,12 @@ public class GitHubApiService {
     }
 
     private HttpHeaders createHeaders() {
-        org.springframework.http.HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/vnd.github.v3+json");
         headers.set("User-Agent", "DevLog-App");
+        if (githubToken != null && !githubToken.isEmpty()) {
+            headers.set("Authorization", "Bearer " + githubToken);
+        }
         return headers;
     }
 
