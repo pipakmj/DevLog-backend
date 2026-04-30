@@ -3,9 +3,15 @@ package com.devlog.devlog.auth.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -23,6 +29,12 @@ public class GeminiService {
 
         private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
+        @Retryable(
+                retryFor = HttpServerErrorException.class,
+                noRetryFor = HttpClientErrorException.class,
+                maxAttempts = 3,
+                backoff = @Backoff(delay = 2000, multiplier = 2)
+        )
         public String summarize(String readme, List<String> commits) {
                 String prompt = buildPrompt(readme, commits);
                 // Gemini API 요청 바디 구성
