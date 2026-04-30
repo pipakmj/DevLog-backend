@@ -36,8 +36,8 @@ public class PostDetailResponse {
                 .tags(post.getTags().stream()
                         .map(TagEntity::getName)
                         .collect(Collectors.toList()))
-                .projectName(post.getProject().getTitle())
-                .projectId(post.getProject().getId())
+                .projectName(post.getProject() != null ? post.getProject().getTitle() : null)
+                .projectId(post.getProject() != null ? post.getProject().getId() : null)
                 .views(post.getViews())
                 .build();
     }

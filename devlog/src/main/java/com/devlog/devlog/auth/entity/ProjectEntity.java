@@ -22,6 +22,7 @@ public class ProjectEntity {
     String githubUrl;
     String techStack;
     LocalDateTime createdAt;
+    String myRole;
     String thumbnail;
 
     @ManyToOne

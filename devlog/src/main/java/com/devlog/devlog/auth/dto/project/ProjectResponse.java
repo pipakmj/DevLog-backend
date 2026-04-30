@@ -16,6 +16,7 @@ public class ProjectResponse {
     private String demoUrl;
     private String githubUrl;
     private String techStack;
+    private String myRole;
     private String thumbnail;
     private LocalDateTime createdAt;
 
@@ -28,6 +29,7 @@ public class ProjectResponse {
                 .demoUrl(projectEntity.getDemoUrl())
                 .githubUrl(projectEntity.getGithubUrl())
                 .techStack(projectEntity.getTechStack())
+                .myRole(projectEntity.getMyRole())
                 .thumbnail(projectEntity.getThumbnail())
                 .createdAt(projectEntity.getCreatedAt())
                 .build();

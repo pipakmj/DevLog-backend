@@ -15,5 +15,6 @@ public class ProjectRequest {
     private String demoUrl;
     private String githubUrl;
     private String techStack;
+    private String myRole;
     private String thumbnail;
 }
