@@ -48,10 +48,10 @@ public class AuthController {
         userService.saveRefreshToken(user.getEmail(), refreshToken);
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false)// 테스트환경(http)에서 false, 배포(https)시 true
+                .secure(true)// 테스트환경(http)에서 false, 배포(https)시 true
                 .path("/")
                 .maxAge(14 * 24 * 60 * 60)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         UserResponse data = UserResponse.loginSuccess(user, accessToken);
