@@ -31,7 +31,7 @@ public class PostResponse {
                         .map(TagEntity::getName)
                         .collect(Collectors.toList()))
                 .views(post.getViews())
-                .projectName(post.getProject().getTitle())
+                .projectName(post.getProject() != null ? post.getProject().getTitle() : null)
                 .build();
     }
 }

@@ -38,7 +38,7 @@ public class PostEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId")
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private ProjectEntity project;
 
     @ManyToMany(fetch = FetchType.LAZY)

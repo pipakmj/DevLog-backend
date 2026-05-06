@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .sessionManagement(session -> session
                                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                        .requestMatchers("/auth/signin", "/auth/signup", "/auth/refresh", "/error","/health").permitAll()
+                                        .requestMatchers("/auth/signin", "/auth/signup/**", "/auth/refresh", "/error","/health", "/auth/password/**").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/project/all", "/api/project/{id}", "/api/posts/**", "/api/posts/{postId}").permitAll()
                                         .requestMatchers(HttpMethod.PATCH, "/api/posts/{postId}/views").permitAll()
                                         .requestMatchers("/auth/signout", "/api/**").authenticated()
@@ -74,6 +74,7 @@ public class SecurityConfig {
                 configuration.setAllowedOrigins(Arrays.asList("https://dev-log-frontend-eob7.vercel.app/","http://localhost:5173"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(Arrays.asList("*"));
+                configuration.setExposedHeaders(Arrays.asList("X-RateLimit-Limit", "X-RateLimit-Remaining"));
                 configuration.setAllowCredentials(true);
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

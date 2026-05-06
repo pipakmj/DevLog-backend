@@ -1,7 +1,9 @@
 package com.devlog.devlog.auth.controller;
 
+import com.devlog.devlog.auth.dto.auth.ResetPasswordRequest;
 import com.devlog.devlog.auth.dto.auth.SignInRequest;
 import com.devlog.devlog.auth.dto.auth.SignUpRequest;
+import com.devlog.devlog.auth.dto.auth.ValificationCodeRequest;
 import com.devlog.devlog.auth.dto.user.UserResponse;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.service.UserService;
@@ -36,6 +38,20 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("회원가입이 성공적으로 완료되었습니다.", data));
     }
+
+    @PostMapping("/signup/send-code")
+    public ResponseEntity<ApiResponse<Void>> signUpSendCode(@RequestParam String email) {
+        userService.signUpSendCode(email);
+        return ResponseEntity.ok(ApiResponse.success("인증번호가 성공적으로 전송되었습니다."));
+    }
+
+    @PostMapping("/signup/verify-code")
+    public ResponseEntity<ApiResponse<Boolean>> signUpVerifyCode(@RequestBody ValificationCodeRequest request) {
+        String email = request.getEmail();
+        String code = request.getCode();
+        return ResponseEntity.ok(ApiResponse.success("인증이 성공적으로 완료되었습니다.", userService.signUpVerifyCode(email, code)));
+    }
+
 
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<UserResponse>> signIn(
@@ -88,5 +104,26 @@ public class AuthController {
         String newAccessToken = userService.refreshAccessToken(refreshToken);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success("성공적으로 갱신되었습니다", Map.of("access_token", newAccessToken)));
+    }
+
+    @PostMapping("/password/forgot")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestParam String email) {
+        userService.forgotPassword(email);
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 찾기가 성공적으로 완료되었습니다."));
+    }
+
+    @PostMapping("/password/code")
+    public ResponseEntity<ApiResponse<String>> validateCode(@RequestBody @Valid ValificationCodeRequest request) {
+        String email = request.getEmail();
+        String code = request.getCode();
+        return ResponseEntity.ok(ApiResponse.success("인증되었습니다.", userService.validateCode(email, code)));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        String token = request.getToken();
+        String newPassword = request.getNewPassword();
+        userService.resetPassword(token, newPassword);
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 재설정이 성공적으로 완료되었습니다."));
     }
 }

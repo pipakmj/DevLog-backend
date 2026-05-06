@@ -58,6 +58,7 @@ public class ProjectService {
                 .demoUrl(request.getDemoUrl())
                 .githubUrl(request.getGithubUrl())
                 .techStack(request.getTechStack())
+                .myRole(request.getMyRole())
                 .thumbnail(request.getThumbnail())
                 .userEntity(user)
                 .createdAt(LocalDateTime.now())
@@ -80,6 +81,7 @@ public class ProjectService {
         if (request.getDescription() != null) project.setDescription(request.getDescription());
         if (request.getDemoUrl() != null) project.setDemoUrl(request.getDemoUrl());
         if (request.getGithubUrl() != null) project.setGithubUrl(request.getGithubUrl());
+        if (request.getMyRole() != null) project.setMyRole(request.getMyRole());
         if (request.getTechStack() != null) project.setTechStack(request.getTechStack());
         if (request.getThumbnail() != null) project.setThumbnail(request.getThumbnail());
 
