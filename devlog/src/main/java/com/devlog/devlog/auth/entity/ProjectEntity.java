@@ -17,12 +17,21 @@ public class ProjectEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String title;
+
+    @Column(columnDefinition = "TEXT")
     String description;
+
     String demoUrl;
     String githubUrl;
+
+    @Column(columnDefinition = "TEXT")
     String techStack;
+
     LocalDateTime createdAt;
+
+    @Column(columnDefinition = "TEXT")
     String myRole;
+
     String thumbnail;
 
     @ManyToOne
