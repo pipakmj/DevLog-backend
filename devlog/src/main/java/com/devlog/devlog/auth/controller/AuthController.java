@@ -39,6 +39,20 @@ public class AuthController {
                 .body(ApiResponse.success("회원가입이 성공적으로 완료되었습니다.", data));
     }
 
+    @PostMapping("/signup/send-code")
+    public ResponseEntity<ApiResponse<Void>> signUpSendCode(@RequestParam String email) {
+        userService.signUpSendCode(email);
+        return ResponseEntity.ok(ApiResponse.success("인증번호가 성공적으로 전송되었습니다."));
+    }
+
+    @PostMapping("/signup/verify-code")
+    public ResponseEntity<ApiResponse<Boolean>> signUpVerifyCode(@RequestBody ValificationCodeRequest request) {
+        String email = request.getEmail();
+        String code = request.getCode();
+        return ResponseEntity.ok(ApiResponse.success("인증이 성공적으로 완료되었습니다.", userService.signUpVerifyCode(email, code)));
+    }
+
+
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<UserResponse>> signIn(
             @RequestBody @Valid SignInRequest request,

@@ -58,6 +58,21 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void signUpSendCode(String email) {
+        String code = valificationCodeGenerator.generate();
+        CacheStore.put(email, code);
+        mailService.send(email, code);
+    }
+
+    public Boolean signUpVerifyCode(String email, String code) {
+        String savedCode = CacheStore.getIfPresent(email);
+        if (savedCode != null && savedCode.equals(code)) {
+            CacheStore.invalidate(email);
+            return true;
+        }
+        return false;
+    }
+
     public UserEntity signIn(SignInRequest request) {
         UserEntity user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
