@@ -52,6 +52,11 @@ public class ProjectService {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        String thumbnailUrl = request.getThumbnail();
+        if (thumbnailUrl != null && !thumbnailUrl.startsWith("https://res.cloudinary.com/")) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         ProjectEntity project = ProjectEntity.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -75,6 +80,10 @@ public class ProjectService {
 
         if (!project.getUserEntity().getEmail().equals(userEmail)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
+        }
+        String thumbnailUrl = request.getThumbnail();
+        if (thumbnailUrl != null && !thumbnailUrl.startsWith("https://res.cloudinary.com/")) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         if (request.getTitle() != null) project.setTitle(request.getTitle());

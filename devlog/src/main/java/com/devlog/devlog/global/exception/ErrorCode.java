@@ -22,7 +22,7 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "댓글을 찾을 수 없습니다."),
     UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN,"COMMENT-002", "댓글에 대한 권한이 없습니다."),
     API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API-001", "일일 요청 제한에 도달했습니다."),
-
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "PROJECT-003", "허용되지 않은 주소입니다."),
     // Common
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON-001", "서버 내부 오류가 발생했습니다.");
 
