@@ -47,6 +47,12 @@ public class UserService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
+        String verified = CacheStore.getIfPresent(request.getEmail() + "_VERIFIED");
+        if (!"true".equals(verified)) {
+            throw new RuntimeException("이메일 인증이 완료되지 않았습니다."); // 필요시 ErrorCode 추가
+        }
+
+
         UserEntity user = UserEntity.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -58,10 +64,13 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+        CacheStore.invalidate(request.getEmail() + "_VERIFIED");
     }
 
-    @Async
     public void signUpSendCode(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
         String code = valificationCodeGenerator.generate();
         CacheStore.put(email, code);
         mailService.send(email, code);
@@ -71,6 +80,7 @@ public class UserService {
         String savedCode = CacheStore.getIfPresent(email);
         if (savedCode != null && savedCode.equals(code)) {
             CacheStore.invalidate(email);
+            CacheStore.put(email + "_VERIFIED", "true");
             return true;
         }
         return false;
