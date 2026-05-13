@@ -15,6 +15,8 @@ import com.devlog.devlog.global.provider.JwtTokenProvider;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +60,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Async
     public void signUpSendCode(String email) {
         String code = valificationCodeGenerator.generate();
         CacheStore.put(email, code);
