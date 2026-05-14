@@ -4,9 +4,9 @@ import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.service.PostService;
 import com.devlog.devlog.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,7 +39,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getAllPosts(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<PostResponse>>> getAllPosts(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postService.getAllPosts(pageable)));
     }
 
