@@ -12,28 +12,31 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ResponseEntity<ApiResponse<String>> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException e) {
-        String errorMessage = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        protected ResponseEntity<ApiResponse<String>> handleMethodArgumentNotValidException(
+                        MethodArgumentNotValidException e) {
+                String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                                .map(error -> error.getDefaultMessage())
+                                .collect(Collectors.joining(", "));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(errorMessage, "VALIDATION-001"));
-    }
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error(errorMessage, "VALIDATION-001"));
+        }
 
-    @ExceptionHandler(BusinessException.class)
-    protected ResponseEntity<ApiResponse<String>> handleBusinessException(BusinessException e) {
-        ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity.status(errorCode.getHttpStatus())
-                .body(ApiResponse.error(errorCode.getMessage(), errorCode.getCode()));
-    }
+        @ExceptionHandler(BusinessException.class)
+        protected ResponseEntity<ApiResponse<String>> handleBusinessException(BusinessException e) {
+                ErrorCode errorCode = e.getErrorCode();
+                return ResponseEntity.status(errorCode.getHttpStatus())
+                                .body(ApiResponse.error(errorCode.getMessage(), errorCode.getCode()));
+        }
 
-    @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<String>> handleException(Exception e) {
-        return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
-                        ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
-    }
+        @ExceptionHandler(Exception.class)
+        protected ResponseEntity<ApiResponse<String>> handleException(Exception e) {
+                // 서버 콘솔에 실제 에러의 원인을 출력해주는 코드 추가!
+                e.printStackTrace();
+
+                return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
+                                .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
+                                                ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
+        }
 }
