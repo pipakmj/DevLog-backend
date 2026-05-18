@@ -27,7 +27,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 @RestController
 @RequestMapping("/api/github")
@@ -37,9 +39,9 @@ public class GitAnalyzeController {
     private final TechStackExtractor techStackExtractor;
     private final GeminiService geminiService;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
 
-    private final Map<String, Integer> userRequestCounts = new ConcurrentHashMap<>();
-
+    private static final String RATE_LIMIT_PREFIX = "analyze_limit:";
     private final int MAX_REQUEST_LIMIT = 5;
     private final Executor httpExecutor = Executors.newFixedThreadPool(10); // 외부 API 호출용 스레드 풀
 
@@ -49,7 +51,11 @@ public class GitAnalyzeController {
             Authentication authentication) {
 
         String userEmail = authentication.getName();
-        int count = userRequestCounts.getOrDefault(userEmail, 0);
+        String limitKey = RATE_LIMIT_PREFIX + userEmail;
+
+        String countStr = redisTemplate.opsForValue().get(limitKey);
+        int count = countStr != null ? Integer.parseInt(countStr) : 0;
+
         if (count >= MAX_REQUEST_LIMIT)
             throw new BusinessException(ErrorCode.API_RATE_LIMIT_EXCEEDED);
 
@@ -75,8 +81,13 @@ public class GitAnalyzeController {
             String aiResult = geminiService.summarize(readme, commits);
 
             GitAnalyzeResponse response = buildResponse(techStack, aiResult);
-            userRequestCounts.put(userEmail, count + 1);
-            int remaining = MAX_REQUEST_LIMIT - (count + 1);
+
+            Long newCount = redisTemplate.opsForValue().increment(limitKey);
+            if (newCount != null && newCount == 1L) {
+                redisTemplate.expire(limitKey, Duration.ofDays(1));
+            }
+
+            int remaining = MAX_REQUEST_LIMIT - newCount.intValue();
             return ResponseEntity.ok()
                     .header("X-RateLimit-Limit", String.valueOf(MAX_REQUEST_LIMIT))
                     .header("X-RateLimit-Remaining", String.valueOf(remaining))
@@ -117,10 +128,5 @@ public class GitAnalyzeController {
                 .description(description)
                 .features(features)
                 .build();
-    }
-
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-    public void resetDailyRequestCounts() {
-        userRequestCounts.clear();
     }
 }
