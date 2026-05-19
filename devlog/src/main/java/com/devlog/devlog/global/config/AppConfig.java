@@ -15,6 +15,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import java.time.Duration;
 
 @Configuration
@@ -30,13 +35,21 @@ public class AppConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 // 기본 캐시 유지 시간을 1시간으로 설정
                 .entryTtl(Duration.ofHours(1))
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                        .fromSerializer(serializer));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(cacheConfig)
