@@ -12,11 +12,8 @@ import com.devlog.devlog.global.common.ValificationCodeGenerator;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import com.devlog.devlog.global.provider.JwtTokenProvider;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +32,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ValificationCodeGenerator valificationCodeGenerator;
     private final MailService mailService;
-
-    private final Cache<String, String> CacheStore = Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .maximumSize(1000)
-            .build();
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional
     public void signUp(SignUpRequest request) {
@@ -47,11 +40,10 @@ public class UserService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        String verified = CacheStore.getIfPresent(request.getEmail() + "_VERIFIED");
+        String verified = redisTemplate.opsForValue().get(request.getEmail() + "_VERIFIED");
         if (!"true".equals(verified)) {
             throw new RuntimeException("이메일 인증이 완료되지 않았습니다."); // 필요시 ErrorCode 추가
         }
-
 
         UserEntity user = UserEntity.builder()
                 .email(request.getEmail())
@@ -64,7 +56,7 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-        CacheStore.invalidate(request.getEmail() + "_VERIFIED");
+        redisTemplate.delete(request.getEmail() + "_VERIFIED");
     }
 
     public void signUpSendCode(String email) {
@@ -72,15 +64,16 @@ public class UserService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         String code = valificationCodeGenerator.generate();
-        CacheStore.put(email, code);
+        redisTemplate.opsForValue().set(email, code, 10, TimeUnit.MINUTES);
         mailService.send(email, code);
     }
 
     public Boolean signUpVerifyCode(String email, String code) {
-        String savedCode = CacheStore.getIfPresent(email);
+        String savedCode = redisTemplate.opsForValue().get(email);
         if (savedCode != null && savedCode.equals(code)) {
-            CacheStore.invalidate(email);
-            CacheStore.put(email + "_VERIFIED", "true");
+            redisTemplate.delete(email);
+            // 30분 동안 회원가입을 완료할 수 있도록 세팅
+            redisTemplate.opsForValue().set(email + "_VERIFIED", "true", 30, TimeUnit.MINUTES);
             return true;
         }
         return false;
@@ -100,18 +93,18 @@ public class UserService {
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         String code = valificationCodeGenerator.generate();
-        CacheStore.put(email, code);
+        redisTemplate.opsForValue().set(email, code, 10, TimeUnit.MINUTES);
         mailService.send(email, code);
     }
 
-    public String validateCode(String email, String code ) {
+    public String validateCode(String email, String code) {
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        String savedCode = CacheStore.getIfPresent(email);
+        String savedCode = redisTemplate.opsForValue().get(email);
         if (savedCode != null && savedCode.equals(code)) {
-            CacheStore.invalidate(email);
+            redisTemplate.delete(email);
             String token = UUID.randomUUID().toString();
-            CacheStore.put(token, email);
+            redisTemplate.opsForValue().set(token, email, 10, TimeUnit.MINUTES);
             return token;
         }
         return "";
@@ -119,7 +112,7 @@ public class UserService {
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        String email = CacheStore.getIfPresent(token);
+        String email = redisTemplate.opsForValue().get(token);
         if (email == null) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
@@ -127,39 +120,30 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        CacheStore.invalidate(token);
+        redisTemplate.delete(token);
     }
 
-    @Transactional
     public void signOut(String email) {
-        refreshTokenRepository.deleteByEmail(email);
+        redisTemplate.delete("RT:" + email);
     }
 
-    @Transactional
     public void saveRefreshToken(String email, String refreshToken) {
-        LocalDateTime expiryTime = LocalDateTime.now().plusDays(14);
-
-        refreshTokenRepository.findByEmail(email).ifPresentOrElse(entity -> {
-            entity.setToken(refreshToken);
-            entity.setExpiryTime(expiryTime);
-        },
-                () -> refreshTokenRepository.save(RefreshTokenEntity.builder()
-                        .email(email)
-                        .token(refreshToken)
-                        .expiryTime(expiryTime)
-                        .createAt(LocalDateTime.now())
-                        .build()));
+        redisTemplate.opsForValue().set("RT:" + email, refreshToken, 14, TimeUnit.DAYS);
     }
 
-    @Transactional
     public String refreshAccessToken(String refreshToken) {
-        RefreshTokenEntity tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
-        if (tokenEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
-            refreshTokenRepository.delete(tokenEntity);
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+        String useremail = jwtTokenProvider.getUserId(refreshToken);
+        if (useremail == null) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+        String savedRefreshToken = redisTemplate.opsForValue().get("RT:" + useremail);
+        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
         }
-        return jwtTokenProvider.createAccessToken(tokenEntity.getEmail());
+        return jwtTokenProvider.createAccessToken(useremail);
     }
 
     @Transactional(readOnly = true)

@@ -6,9 +6,11 @@ import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.service.ProjectService;
 import com.devlog.devlog.global.common.ApiResponse;
+import com.devlog.devlog.global.common.CustomSliceResponse;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -27,21 +29,21 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getAllProjects(
+    public ResponseEntity<ApiResponse<CustomSliceResponse<ProjectResponse>>> getAllProjects(
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Slice<ProjectResponse> projects = projectService.getAllProjects(pageable);
-        return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projects));
+        CustomSliceResponse<ProjectResponse> projectResponseList = projectService.getAllProjects(pageable);
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projectResponseList));
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<ApiResponse<Slice<ProjectResponse>>> getUserProjects(
+    public ResponseEntity<ApiResponse<CustomSliceResponse<ProjectResponse>>> getUserProjects(
             Authentication authentication,
             @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String userEmail = authentication.getName();
-        Slice<ProjectResponse> projects = projectService.getUserProjects(userEmail, pageable);
-        return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projects));
+        CustomSliceResponse<ProjectResponse> projectResponseList = projectService.getUserProjects(userEmail, pageable);
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projectResponseList));
     }
 
     @GetMapping("/mine/post")
@@ -52,6 +54,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
+    @Cacheable(value = "projectDetail", key = "#id")
     public ResponseEntity<ApiResponse<ProjectResponse>> getDetailProject(@PathVariable Long id) {
         ProjectEntity project = projectRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
         return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 상세 내용을 가져왔습니다. ", ProjectResponse.getUserProjectResponse(project)));
