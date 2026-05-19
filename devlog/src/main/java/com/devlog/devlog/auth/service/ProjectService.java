@@ -6,9 +6,13 @@ import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.global.common.CustomSliceResponse;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -25,16 +29,19 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
-    public Slice<ProjectResponse> getAllProjects(Pageable pageable) {
-        return projectRepository.findAll(pageable).map(ProjectResponse::getUserProjectResponse);
+    @Cacheable(value = "projectAllList", key = "#pageable.pageNumber")
+    public CustomSliceResponse<ProjectResponse> getAllProjects(Pageable pageable) {
+        Slice<ProjectResponse> slice = projectRepository.findAll(pageable).map(ProjectResponse::getUserProjectResponse);
+        return new CustomSliceResponse<>(slice);
     }
 
     @Transactional(readOnly = true)
-    public Slice<ProjectResponse> getUserProjects(String userEmail, Pageable pageable) {
+    @Cacheable(value = "projectUserList", key = "#userEmail+#pageable.pageNumber")
+    public CustomSliceResponse<ProjectResponse> getUserProjects(String userEmail, Pageable pageable) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        return projectRepository.findByUserEntityId(user.getId(), pageable).map(ProjectResponse::getUserProjectResponse);
+        Slice<ProjectResponse> sice = projectRepository.findByUserEntityId(user.getId(), pageable).map(ProjectResponse::getUserProjectResponse);
+        return new CustomSliceResponse<>(sice);
     }
 
     @Transactional(readOnly = true)
@@ -48,6 +55,10 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projectAllList", allEntries = true),
+            @CacheEvict(value = "projectUserList", allEntries = true)
+    })
     public ProjectResponse createProject(String userEmail, ProjectRequest request) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -74,6 +85,11 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projectAllList", allEntries = true),
+            @CacheEvict(value = "projectUserList", allEntries = true),
+            @CacheEvict(value = "projectDetail", key = "#projectId")
+    })
     public ProjectResponse updateProject(Long projectId, String userEmail, ProjectRequest request) {
         ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
@@ -98,6 +114,11 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projectAllList", allEntries = true),
+            @CacheEvict(value = "projectUserList", allEntries = true),
+            @CacheEvict(value = "projectDetail", key = "#projectId")
+    })
     public void deleteProject(Long projectId, String userEmail) {
         ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));

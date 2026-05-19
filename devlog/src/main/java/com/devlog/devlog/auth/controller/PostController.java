@@ -3,6 +3,7 @@ package com.devlog.devlog.auth.controller;
 import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.service.PostService;
 import com.devlog.devlog.global.common.ApiResponse;
+import com.devlog.devlog.global.common.CustomPageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,8 +41,9 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getAllPosts(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postService.getAllPosts(pageable)));
+    public ResponseEntity<ApiResponse<CustomPageResponse<PostResponse>>> getAllPosts(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        CustomPageResponse<PostResponse> postResponseList = postService.getAllPosts(pageable);
+        return ResponseEntity.ok(ApiResponse.success("포스트 목록 조회가 성공적으로 완료되었습니다.", postResponseList));
     }
 
     @GetMapping("/{postId}")

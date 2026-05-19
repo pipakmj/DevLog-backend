@@ -3,11 +3,13 @@ package com.devlog.devlog.auth.service;
 import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.entity.*;
 import com.devlog.devlog.auth.repository.*;
+import com.devlog.devlog.global.common.CustomPageResponse;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,8 +36,10 @@ public class PostService {
     private final StringRedisTemplate redisTemplate;
 
     @Transactional(readOnly = true)
-    public Page<PostResponse> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable).map(PostResponse::from);
+    @Cacheable(value = "postList", key = "#pageable.pageNumber")
+    public CustomPageResponse<PostResponse> getAllPosts(Pageable pageable) {
+        Page<PostResponse> page = postRepository.findAll(pageable).map(PostResponse::from);
+        return new CustomPageResponse<>(page);
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +65,7 @@ public class PostService {
     }
 
     @Transactional
+    @CacheEvict(value = "postList", allEntries = true)
     public void createPost(String userEmail, PostRequest postRequest) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -96,7 +101,10 @@ public class PostService {
     }
 
     @Transactional
-    @CacheEvict(value = "postDetail", key = "#postId")
+    @Caching(evict = {
+            @CacheEvict(value = "postDetail", key = "#postId"),
+            @CacheEvict(value = "postList", allEntries = true)
+    })
     public void updatePost(String userEmail, Long postId, PostRequest postRequest) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -140,7 +148,11 @@ public class PostService {
     }
 
     @Transactional
-    @CacheEvict(value = "postDetail", key = "#postId")
+    @Caching(evict = {
+            @CacheEvict(value = "postDetail", key = "#postId"),
+            @CacheEvict(value = "postList", allEntries = true)
+    }
+    )
     public void deletePost(String userEmail, Long postId) {
         PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
