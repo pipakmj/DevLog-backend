@@ -8,6 +8,7 @@ import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +29,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional(readOnly = true)
     public Page<PostResponse> getAllPosts(Pageable pageable) {
@@ -40,7 +43,13 @@ public class PostService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
     @Transactional
-    public void updatePostViewCount(Long postId) {
+    public void updatePostViewCount(Long postId, String clientIp) {
+        String viewKey = "post_view:" + postId + ":" + clientIp;
+        String isViewed = redisTemplate.opsForValue().get(viewKey);
+        if (isViewed != null) {
+            return;
+        }
+        redisTemplate.opsForValue().set(viewKey, "viewed", 24, TimeUnit.HOURS);
         PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         int updatedViews = postEntity.getViews() + 1;

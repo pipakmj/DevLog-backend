@@ -3,6 +3,7 @@ package com.devlog.devlog.auth.controller;
 import com.devlog.devlog.auth.dto.post.*;
 import com.devlog.devlog.auth.service.PostService;
 import com.devlog.devlog.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,8 +50,9 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}/views")
-    public ResponseEntity<ApiResponse<Void>> updatePostViewCount(@PathVariable Long postId) {
-        postService.updatePostViewCount(postId);
+    public ResponseEntity<ApiResponse<Void>> updatePostViewCount(@PathVariable Long postId, HttpServletRequest request) {
+        String clientIp = request.getRemoteAddr();
+        postService.updatePostViewCount(postId, clientIp);
         return ResponseEntity.ok(ApiResponse.success("조회수 업데이트가 성공적으로 완료되었습니다."));
     }
 
