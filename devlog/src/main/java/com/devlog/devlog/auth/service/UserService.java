@@ -123,36 +123,27 @@ public class UserService {
         redisTemplate.delete(token);
     }
 
-    @Transactional
     public void signOut(String email) {
-        refreshTokenRepository.deleteByEmail(email);
+        redisTemplate.delete("RT:" + email);
     }
 
-    @Transactional
     public void saveRefreshToken(String email, String refreshToken) {
-        LocalDateTime expiryTime = LocalDateTime.now().plusDays(14);
-
-        refreshTokenRepository.findByEmail(email).ifPresentOrElse(entity -> {
-            entity.setToken(refreshToken);
-            entity.setExpiryTime(expiryTime);
-        },
-                () -> refreshTokenRepository.save(RefreshTokenEntity.builder()
-                        .email(email)
-                        .token(refreshToken)
-                        .expiryTime(expiryTime)
-                        .createAt(LocalDateTime.now())
-                        .build()));
+        redisTemplate.opsForValue().set("RT:" + email, refreshToken, 14, TimeUnit.DAYS);
     }
 
-    @Transactional
     public String refreshAccessToken(String refreshToken) {
-        RefreshTokenEntity tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
-        if (tokenEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
-            refreshTokenRepository.delete(tokenEntity);
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+        String useremail = jwtTokenProvider.getUserId(refreshToken);
+        if (useremail == null) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+        String savedRefreshToken = redisTemplate.opsForValue().get("RT:" + useremail);
+        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
         }
-        return jwtTokenProvider.createAccessToken(tokenEntity.getEmail());
+        return jwtTokenProvider.createAccessToken(useremail);
     }
 
     @Transactional(readOnly = true)
