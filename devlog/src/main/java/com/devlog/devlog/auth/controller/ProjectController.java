@@ -30,8 +30,7 @@ public class ProjectController {
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<CustomSliceResponse<ProjectResponse>>> getAllProjects(
-            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
+            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         CustomSliceResponse<ProjectResponse> projectResponseList = projectService.getAllProjects(pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 모든 프로젝트 정보를 가져왔습니다", projectResponseList));
     }
@@ -39,8 +38,7 @@ public class ProjectController {
     @GetMapping("/mine")
     public ResponseEntity<ApiResponse<CustomSliceResponse<ProjectResponse>>> getUserProjects(
             Authentication authentication,
-            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
+            @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         String userEmail = authentication.getName();
         CustomSliceResponse<ProjectResponse> projectResponseList = projectService.getUserProjects(userEmail, pageable);
         return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 정보를 가져왔습니다.", projectResponseList));
@@ -54,10 +52,9 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    @Cacheable(value = "projectDetail", key = "#id")
     public ResponseEntity<ApiResponse<ProjectResponse>> getDetailProject(@PathVariable Long id) {
-        ProjectEntity project = projectRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
-        return ResponseEntity.ok(ApiResponse.success("성공적으로 프로젝트 상세 내용을 가져왔습니다. ", ProjectResponse.getUserProjectResponse(project)));
+        return ResponseEntity
+                .ok(ApiResponse.success("성공적으로 프로젝트 상세 내용을 가져왔습니다. ", projectService.getDetailProject(id)));
     }
 
     @PostMapping("/create")

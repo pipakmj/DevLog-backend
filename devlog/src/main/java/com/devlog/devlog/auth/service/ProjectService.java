@@ -40,7 +40,8 @@ public class ProjectService {
     public CustomSliceResponse<ProjectResponse> getUserProjects(String userEmail, Pageable pageable) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        Slice<ProjectResponse> sice = projectRepository.findByUserEntityId(user.getId(), pageable).map(ProjectResponse::getUserProjectResponse);
+        Slice<ProjectResponse> sice = projectRepository.findByUserEntityId(user.getId(), pageable)
+                .map(ProjectResponse::getUserProjectResponse);
         return new CustomSliceResponse<>(sice);
     }
 
@@ -52,6 +53,14 @@ public class ProjectService {
                 .stream()
                 .map(ProjectResponse::getUserProjectResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "projectDetail", key = "#id")
+    public ProjectResponse getDetailProject(Long id) {
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+        return ProjectResponse.getUserProjectResponse(project);
     }
 
     @Transactional
@@ -102,13 +111,20 @@ public class ProjectService {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        if (request.getTitle() != null) project.setTitle(request.getTitle());
-        if (request.getDescription() != null) project.setDescription(request.getDescription());
-        if (request.getDemoUrl() != null) project.setDemoUrl(request.getDemoUrl());
-        if (request.getGithubUrl() != null) project.setGithubUrl(request.getGithubUrl());
-        if (request.getMyRole() != null) project.setMyRole(request.getMyRole());
-        if (request.getTechStack() != null) project.setTechStack(request.getTechStack());
-        if (request.getThumbnail() != null) project.setThumbnail(request.getThumbnail());
+        if (request.getTitle() != null)
+            project.setTitle(request.getTitle());
+        if (request.getDescription() != null)
+            project.setDescription(request.getDescription());
+        if (request.getDemoUrl() != null)
+            project.setDemoUrl(request.getDemoUrl());
+        if (request.getGithubUrl() != null)
+            project.setGithubUrl(request.getGithubUrl());
+        if (request.getMyRole() != null)
+            project.setMyRole(request.getMyRole());
+        if (request.getTechStack() != null)
+            project.setTechStack(request.getTechStack());
+        if (request.getThumbnail() != null)
+            project.setThumbnail(request.getThumbnail());
 
         return ProjectResponse.getUserProjectResponse(project);
     }
