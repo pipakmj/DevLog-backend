@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .sessionManagement(session -> session
                                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                        .requestMatchers("/auth/signin", "/auth/signup/**", "/auth/refresh", "/error","/health", "/auth/password/**").permitAll()
+                                        .requestMatchers("/auth/signin", "/auth/signup/**", "/auth/refresh", "/error","/health", "/auth/password/**","/v3/api-docs/**", "/scalar/**").permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/project/all", "/api/project/{id}", "/api/posts/**", "/api/posts/{postId}").permitAll()
                                         .requestMatchers(HttpMethod.PATCH, "/api/posts/{postId}/views").permitAll()
                                         .requestMatchers("/auth/signout", "/api/**").authenticated()
