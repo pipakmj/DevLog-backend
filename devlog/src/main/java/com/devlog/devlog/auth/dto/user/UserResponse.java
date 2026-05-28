@@ -16,6 +16,7 @@ public class UserResponse {
     private String nickname;
     private String bio;
     private String github_url;
+    private String role;
     private String accessToken;
     private String refreshToken;
 
@@ -30,6 +31,7 @@ public class UserResponse {
         return UserResponse.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
+                .role(user.getRole().name())
                 .accessToken(accessToken)
                 .build();
     }

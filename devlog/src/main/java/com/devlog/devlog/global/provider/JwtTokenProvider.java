@@ -1,6 +1,11 @@
 package com.devlog.devlog.global.provider;
 
+import com.devlog.devlog.auth.entity.UserEntity;
+import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.global.exception.BusinessException;
+import com.devlog.devlog.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -17,14 +22,19 @@ public class JwtTokenProvider {
     private final Key key;
     private final long ACCESS_TOKEN_VALID_TIME = 1000L * 60 * 15; // 15분
     private final long REFRESH_TOKEN_VALID_TIME = 1000L * 60 * 60 * 24 * 14; // 14일
+    private final UserRepository userRepository;
 
     // 생성자에서 Key를 한 번만 초기화하여 재사용합니다.
-    public JwtTokenProvider(@Value("${SECRET_KEY}") String secretKey) {
+    public JwtTokenProvider(@Value("${SECRET_KEY}") String secretKey, UserRepository userRepository) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        this.userRepository = userRepository;
     }
 
     public String createAccessToken(String userId) {
         Claims claims = Jwts.claims().setSubject(userId);
+        UserEntity userEntity = userRepository.findByEmail(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        claims.put("role", userEntity.getRole().name());
         Date now = new Date();
         Date validity = new Date(now.getTime() + ACCESS_TOKEN_VALID_TIME);
 
@@ -56,6 +66,15 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String getRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     public boolean validateToken(String token) {

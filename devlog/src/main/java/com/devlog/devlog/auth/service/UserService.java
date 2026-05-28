@@ -1,5 +1,6 @@
 package com.devlog.devlog.auth.service;
 
+import com.devlog.devlog.auth.UserRole;
 import com.devlog.devlog.auth.dto.auth.SignInRequest;
 import com.devlog.devlog.auth.dto.auth.SignUpRequest;
 import com.devlog.devlog.auth.dto.auth.ValificationCodeRequest;
@@ -51,6 +52,7 @@ public class UserService {
                 .nickname(request.getNickname())
                 .bio(request.getBio())
                 .github_url(request.getGithub_url())
+                .role(UserRole.ROLE_USER)
                 .created_at(LocalDateTime.now())
                 .updated_at(LocalDateTime.now())
                 .build();

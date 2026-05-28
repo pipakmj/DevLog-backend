@@ -1,5 +1,6 @@
 package com.devlog.devlog.auth.entity;
 
+import com.devlog.devlog.auth.UserRole;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -28,6 +29,8 @@ public class UserEntity {
     String github_url;
     LocalDateTime created_at;
     LocalDateTime updated_at;
+    @Enumerated(EnumType.STRING)
+    private UserRole role = UserRole.ROLE_USER;
 
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
