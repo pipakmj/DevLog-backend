@@ -1,4 +1,5 @@
-package com.devlog.devlog.auth.dto.portfolio;
+package com.devlog.devlog.auth.dto.portfolio.request;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FeatureRequest {
-    private String title;
+public class ImageDTO {
+    private String imageUrl;
     private String description;
 }

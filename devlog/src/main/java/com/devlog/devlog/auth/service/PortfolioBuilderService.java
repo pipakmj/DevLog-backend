@@ -1,6 +1,6 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.portfolio.PortfolioBuilderProjectResponse;
+import com.devlog.devlog.auth.dto.portfolio.response.PortfolioBuilderProjectResponse;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.repository.UserRepository;

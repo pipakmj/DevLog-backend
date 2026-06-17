@@ -24,6 +24,10 @@ public enum ErrorCode {
     API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API-001", "일일 요청 제한에 도달했습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "PROJECT-003", "허용되지 않은 주소입니다."),
 
+    //Portfolio
+    PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND, "PORTFOLIO-001", "포트폴리오를 찾을 수 없습니다."),
+    UNAUTHORIZED_PORTFOLIO_ACCESS(HttpStatus.FORBIDDEN, "PORTFOLIO-002", "포트폴리오에 대한 권한이 없습니다."),
+
     // Bookmark
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "BOOKMARK-001", "북마크를 찾을 수 없습니다."),
     UNAUTHORIZED_BOOKMARK_ACCESS(HttpStatus.FORBIDDEN, "BOOKMARK-002", "북마크에 대한 권한이 없습니다."),

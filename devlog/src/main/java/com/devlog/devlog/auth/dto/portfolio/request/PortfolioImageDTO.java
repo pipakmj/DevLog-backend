@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto.portfolio;
+package com.devlog.devlog.auth.dto.portfolio.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PortfolioImageRequest {
-    private ImageRequest architecture;
-    private ImageRequest erd;
-    private List<ImageRequest> ui;
+public class PortfolioImageDTO {
+    private ImageDTO architecture;
+    private ImageDTO erd;
+    private List<ImageDTO> ui;
 }

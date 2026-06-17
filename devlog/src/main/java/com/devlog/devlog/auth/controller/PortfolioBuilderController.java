@@ -1,6 +1,6 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.portfolio.PortfolioBuilderProjectResponse;
+import com.devlog.devlog.auth.dto.portfolio.response.PortfolioBuilderProjectResponse;
 import com.devlog.devlog.auth.service.PortfolioBuilderService;
 import com.devlog.devlog.global.common.ApiResponse;
 import com.devlog.devlog.global.common.CustomPageResponse;

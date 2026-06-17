@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto.portfolio;
+package com.devlog.devlog.auth.dto.portfolio.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TroubleshootRequest {
+public class TroubleshootDTO {
     private String issue;
     private String resolution;
 }

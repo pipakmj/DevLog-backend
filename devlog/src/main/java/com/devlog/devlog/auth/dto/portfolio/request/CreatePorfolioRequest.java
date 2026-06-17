@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto.portfolio;
+package com.devlog.devlog.auth.dto.portfolio.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,9 +14,9 @@ public class CreatePorfolioRequest {
     private String overview;
     private String roles;
     private List<String> techStack;
-    private List<FeatureRequest> features;
-    private List<TroubleshootRequest> troubleshoots;
+    private List<FeatureDTO> features;
+    private List<TroubleshootDTO> troubleshoots;
     private String metrics;
-    private PortfolioImageRequest images;
+    private PortfolioImageDTO images;
     private String status;
 }

@@ -2,6 +2,7 @@ package com.devlog.devlog.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,8 @@ public class PortfolioEntity {
     private String overview;
     private String roles;
     @Column(columnDefinition = "TEXT")
+    private String techStackJson;
+    @Column(columnDefinition = "TEXT")
     private String featuresJson;
     @Column(columnDefinition = "TEXT")
     private String troubleshootsJson;
@@ -27,6 +30,8 @@ public class PortfolioEntity {
     @Column(columnDefinition = "TEXT")
     private String imagesJson;
     private String status;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
