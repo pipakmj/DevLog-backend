@@ -1,11 +1,9 @@
 package com.devlog.devlog.auth.service;
 
-import com.devlog.devlog.auth.dto.portfolio.request.CreatePorfolioRequest;
-import com.devlog.devlog.auth.dto.portfolio.request.FeatureDTO;
-import com.devlog.devlog.auth.dto.portfolio.request.PortfolioImageDTO;
-import com.devlog.devlog.auth.dto.portfolio.request.TroubleshootDTO;
+import com.devlog.devlog.auth.dto.portfolio.request.*;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
+import com.devlog.devlog.auth.dto.portfolio.response.ProjectPortfolioResponse;
 import com.devlog.devlog.auth.entity.PortfolioEntity;
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
@@ -21,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -91,49 +91,101 @@ public class PortfolioService {
         if(!portfolioEntity.getProject().getUserEntity().equals(user)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
         }
-        try{
-        List<String> techStack =
-                objectMapper.readValue(
-                        portfolioEntity.getTechStackJson(),
-                        new TypeReference<List<String>>() {}
-                );
+        return convertToResponse(portfolioEntity);
+    }
+    @Transactional(readOnly = true)
+    public ProjectPortfolioResponse getProjectPortfolio(String userEmail, Long projectId) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+        if(!project.getUserEntity().equals(user)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
+        }
+        Optional<PortfolioEntity> portfolioEntityOptional = portfolioRepository.findByProjectId(projectId);
+        if(portfolioEntityOptional.isPresent()) {
+            return ProjectPortfolioResponse.builder()
+                    .exists(true)
+                    .portfolio(
+                          convertToResponse(portfolioEntityOptional.get())
+                    )
+                    .build();
+        }
+        return ProjectPortfolioResponse.builder()
+                .exists(false)
+                .portfolio(createInitialPortfolio(project))
+                .build();
+    }
 
-        List<FeatureDTO> features =
-                objectMapper.readValue(
-                        portfolioEntity.getFeaturesJson(),
-                        new TypeReference<List<FeatureDTO>>() {}
-                );
-
-        List<TroubleshootDTO> troubleshoots =
-                objectMapper.readValue(
-                        portfolioEntity.getTroubleshootsJson(),
-                        new TypeReference<List<TroubleshootDTO>>() {}
-                );
-
-        PortfolioImageDTO images =
-                objectMapper.readValue(
-                        portfolioEntity.getImagesJson(),
-                        PortfolioImageDTO.class
-                );
-            return  PortfolioDetailResponse.builder()
-                    .id(portfolioEntity.getId())
-                    .projectId(portfolioEntity.getProject().getId())
-                    .projectName(portfolioEntity.getProject().getTitle())
-                    .overview(portfolioEntity.getOverview())
-                    .roles(portfolioEntity.getRoles())
+    private PortfolioDetailResponse convertToResponse(
+            PortfolioEntity portfolio
+    ) {
+        try {
+            List<String> techStack =
+                    objectMapper.readValue(
+                            portfolio.getTechStackJson(),
+                            new TypeReference<List<String>>() {}
+                    );
+            List<FeatureDTO> features =
+                    objectMapper.readValue(
+                            portfolio.getFeaturesJson(),
+                            new TypeReference<List<FeatureDTO>>() {}
+                    );
+            List<TroubleshootDTO> troubleshoots =
+                    objectMapper.readValue(
+                            portfolio.getTroubleshootsJson(),
+                            new TypeReference<List<TroubleshootDTO>>() {}
+                    );
+            PortfolioImageDTO images =
+                    objectMapper.readValue(
+                            portfolio.getImagesJson(),
+                            PortfolioImageDTO.class
+                    );
+            return PortfolioDetailResponse.builder()
+                    .id(portfolio.getId())
+                    .projectId(portfolio.getProject().getId())
+                    .projectName(portfolio.getProject().getTitle())
+                    .overview(portfolio.getOverview())
+                    .roles(portfolio.getRoles())
                     .techStack(techStack)
                     .features(features)
                     .troubleshoots(troubleshoots)
-                    .metrics(portfolioEntity.getMetrics())
+                    .metrics(portfolio.getMetrics())
                     .images(images)
-                    .status(portfolioEntity.getStatus())
+                    .status(portfolio.getStatus())
                     .isPublic(false)
                     .shareToken(null)
-                    .createdAt(portfolioEntity.getCreatedAt())
-                    .updatedAt(portfolioEntity.getUpdatedAt())
+                    .createdAt(portfolio.getCreatedAt())
+                    .updatedAt(portfolio.getUpdatedAt())
                     .build();
-    } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    private PortfolioDetailResponse createInitialPortfolio(ProjectEntity project) {
+        return PortfolioDetailResponse.builder()
+                .id(null)
+                .projectId(project.getId())
+                .projectName(project.getTitle())
+                .overview("")
+                .roles("")
+                .techStack(Arrays.stream(
+                        project.getTechStack().split(",")
+                ).map(String::trim).toList()
+                )
+                .features(List.of())
+                .troubleshoots(List.of())
+                .metrics("")
+                .images(PortfolioImageDTO.builder()
+                        .architecture(new ImageDTO(null, ""))
+                        .erd(new ImageDTO(null, ""))
+                        .ui(List.of())
+                        .build()
+                )
+                .status("DRAFT")
+                .isPublic(false)
+                .shareToken(null)
+                .build();
     }
 }
