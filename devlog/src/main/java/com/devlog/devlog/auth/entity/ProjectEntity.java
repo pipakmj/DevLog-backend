@@ -34,8 +34,14 @@ public class ProjectEntity {
 
     String thumbnail;
 
+    boolean hasPortfolio;
+
     @ManyToOne
     @JoinColumn(name = "userId", referencedColumnName = "id")
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     UserEntity userEntity;
+
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    PortfolioEntity portfolioEntity;
+
 }
