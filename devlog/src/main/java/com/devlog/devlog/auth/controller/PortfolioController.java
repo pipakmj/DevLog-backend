@@ -1,6 +1,7 @@
 package com.devlog.devlog.auth.controller;
 
 import com.devlog.devlog.auth.dto.portfolio.request.CreatePortfolioRequest;
+import com.devlog.devlog.auth.dto.portfolio.response.DeletePortfolioResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
 
@@ -50,5 +51,13 @@ public class PortfolioController {
     ) throws JsonProcessingException {
         PortfolioResponse res = portfolioService.updatePortfolio(authentication.getName(), portfolioID, request);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 수정 성공", res));
+    }
+    @DeleteMapping("/portfolios/{portfolioId}")
+    public ResponseEntity<ApiResponse<DeletePortfolioResponse>> deletePortfolio(
+            Authentication authentication,
+            @PathVariable Long portfolioId
+    ){
+        DeletePortfolioResponse res = portfolioService.deletePortfolio(authentication.getName(), portfolioId);
+        return ResponseEntity.ok(ApiResponse.success("포트폴리오 삭제 성공", res));
     }
 }

@@ -1,6 +1,7 @@
 package com.devlog.devlog.auth.service;
 
 import com.devlog.devlog.auth.dto.portfolio.request.*;
+import com.devlog.devlog.auth.dto.portfolio.response.DeletePortfolioResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.ProjectPortfolioResponse;
@@ -173,6 +174,43 @@ public class PortfolioService {
                 .portfolioId(portfolioEntity.getId())
                 .status(portfolioEntity.getStatus())
                 .updatedAt(portfolioEntity.getUpdatedAt())
+                .build();
+    }
+    @Transactional
+    public DeletePortfolioResponse deletePortfolio(String userEmail, Long portfolioId) {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        PortfolioEntity portfolioEntity = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
+
+        if(portfolioEntity.getProject().getUserEntity().getId() != user.getId()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
+        }
+        ProjectEntity project = portfolioEntity.getProject();
+        /*
+         * 양방향 OneToOne 관계 해제
+         *
+         * ProjectEntity -> PortfolioEntity 참조가 남아있는 상태에서
+         * PortfolioEntity를 삭제하면 Hibernate flush 과정에서
+         * TransientObjectException이 발생할 수 있음.
+         *
+         * 추후 구조 개선 시:
+         * 1. Portfolio를 독립 엔티티로 관리하거나
+         * 2. orphanRemoval/cascade 정책 재검토 필요
+         */
+        project.setPortfolioEntity(null);
+        // 변경된 연관관계 반영
+        projectRepository.save(project);
+        /*
+         * 포트폴리오 삭제
+         *
+         * 현재 OneToOne 양방향 관계로 인해
+         * 관계 해제 후 삭제를 수행한다.
+         */
+        portfolioRepository.delete(portfolioEntity);
+        return DeletePortfolioResponse.builder()
+                .portfolioId(portfolioId)
                 .build();
     }
 
