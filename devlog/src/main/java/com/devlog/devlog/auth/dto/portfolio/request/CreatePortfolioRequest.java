@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePorfolioRequest {
+public class CreatePortfolioRequest {
     private Long projectId;
     private String overview;
     private String roles;

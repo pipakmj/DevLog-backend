@@ -1,6 +1,6 @@
 package com.devlog.devlog.auth.controller;
 
-import com.devlog.devlog.auth.dto.portfolio.request.CreatePorfolioRequest;
+import com.devlog.devlog.auth.dto.portfolio.request.CreatePortfolioRequest;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
 import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
 
@@ -21,7 +21,7 @@ public class PortfolioController {
     @PostMapping("/portfolios")
     public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
             Authentication authentication,
-            @RequestBody CreatePorfolioRequest request
+            @RequestBody CreatePortfolioRequest request
             ) throws JsonProcessingException {
         PortfolioResponse res = portfolioService.createPortfolio(authentication.getName(), request);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 저장 성공", res));
@@ -41,5 +41,14 @@ public class PortfolioController {
     ){
         ProjectPortfolioResponse res = portfolioService.getProjectPortfolio(authentication.getName(), projectId);
         return ResponseEntity.ok(ApiResponse.success("프로젝트 포트폴리오 조회 성공", res));
+    }
+    @PatchMapping("/portfolios/{portfolioID}")
+    public ResponseEntity<ApiResponse<PortfolioResponse>> updatePortfolio(
+            Authentication authentication,
+            @PathVariable Long portfolioID,
+            @RequestBody CreatePortfolioRequest request
+    ) throws JsonProcessingException {
+        PortfolioResponse res = portfolioService.updatePortfolio(authentication.getName(), portfolioID, request);
+        return ResponseEntity.ok(ApiResponse.success("포트폴리오 수정 성공", res));
     }
 }

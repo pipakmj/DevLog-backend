@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -34,7 +35,7 @@ public class PortfolioService {
     @Transactional
     public PortfolioResponse createPortfolio(
             String userEmail,
-            CreatePorfolioRequest request
+            CreatePortfolioRequest request
     ) throws JsonProcessingException {
 
         UserEntity user = userRepository.findByEmail(userEmail)
@@ -45,6 +46,9 @@ public class PortfolioService {
 
         if(!project.getUserEntity().equals(user)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
+        }
+        if (Objects.equals(request.getStatus(), "COMPLETED")) {
+            validateCompleted(request);
         }
         PortfolioEntity portfolio = portfolioRepository.save(
                 PortfolioEntity.builder()
@@ -115,6 +119,90 @@ public class PortfolioService {
                 .exists(false)
                 .portfolio(createInitialPortfolio(project))
                 .build();
+    }
+    @Transactional
+    public PortfolioResponse updatePortfolio(
+            String userEmail,
+            Long portfolioId,
+            CreatePortfolioRequest request) throws JsonProcessingException {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        PortfolioEntity portfolioEntity = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
+        if(!portfolioEntity.getProject().getUserEntity().equals(user)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
+        }
+        if("COMPLETED".equals(request.getStatus())) {
+            validateCompleted(request);
+        }
+        portfolioEntity.setOverview(
+                request.getOverview()
+        );
+        portfolioEntity.setRoles(
+                request.getRoles()
+        );
+        portfolioEntity.setMetrics(
+                request.getMetrics()
+        );
+        portfolioEntity.setStatus(
+                request.getStatus()
+        );
+        portfolioEntity.setTechStackJson(
+                objectMapper.writeValueAsString(
+                        request.getTechStack()
+                )
+        );
+        portfolioEntity.setFeaturesJson(
+                objectMapper.writeValueAsString(
+                        request.getFeatures()
+                )
+        );
+        portfolioEntity.setTroubleshootsJson(
+                objectMapper.writeValueAsString(
+                        request.getTroubleshoots()
+                )
+        );
+        portfolioEntity.setImagesJson(
+                objectMapper.writeValueAsString(
+                        request.getImages()
+                )
+        );
+
+        portfolioRepository.save(portfolioEntity);
+        return PortfolioResponse.builder()
+                .portfolioId(portfolioEntity.getId())
+                .status(portfolioEntity.getStatus())
+                .updatedAt(portfolioEntity.getUpdatedAt())
+                .build();
+    }
+
+    private void validateCompleted(
+            CreatePortfolioRequest request
+    ) {
+        if (request.getOverview() == null ||
+                request.getOverview().isBlank()) {
+            throw new IllegalArgumentException(
+                    "overview는 필수입니다."
+            );
+        }
+        if (request.getRoles() == null ||
+                request.getRoles().isBlank()) {
+            throw new IllegalArgumentException(
+                    "roles는 필수입니다."
+            );
+        }
+        if (request.getTechStack() == null ||
+                request.getTechStack().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "techStack은 필수입니다."
+            );
+        }
+        if (request.getFeatures() == null ||
+                request.getFeatures().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "features는 필수입니다."
+            );
+        }
     }
 
     private PortfolioDetailResponse convertToResponse(
