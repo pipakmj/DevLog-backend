@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AiFeedbackRequest {
     private Long projectId;
     private String overview;

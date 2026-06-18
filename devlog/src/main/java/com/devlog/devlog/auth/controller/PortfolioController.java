@@ -100,8 +100,8 @@ public class PortfolioController {
         return ResponseEntity.ok(ApiResponse.success("공유 링크 생성 성공", res));
     }
     @GetMapping("/portfolios/share/{shareToken}")
-    public ResponseEntity<ApiResponse<SharedPortfortfolioResponse>> getSharePortfolio(@PathVariable String shareToken) {
-        SharedPortfortfolioResponse res = portfolioService.getSharePortfolio(shareToken);
+    public ResponseEntity<ApiResponse<SharedPortfolioResponse>> getSharePortfolio(@PathVariable String shareToken) {
+        SharedPortfolioResponse res = portfolioService.getSharePortfolio(shareToken);
         return ResponseEntity.ok(ApiResponse.success("공유 포트폴리오 조회 성공", res));
     }
 

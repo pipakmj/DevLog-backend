@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+    @Value("${FRONTEND_URL}")
+    private String frontendBaseUrl;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final PortfolioRepository portfolioRepository;
@@ -280,7 +283,7 @@ public class PortfolioService {
         portfolioRepository.save(portfolioEntity);
         String shareUrl = portfolioEntity.getShareToken() == null
                 ? null
-                : "http://localhost:5173/portfolio/share/"
+                : frontendBaseUrl + "/portfolio/share/"
                 + portfolioEntity.getShareToken();
         return SharePortfolioResponse.builder()
                 .portfolioId(portfolioId)
@@ -290,7 +293,7 @@ public class PortfolioService {
                 .build();
     }
 
-    public SharedPortfortfolioResponse getSharePortfolio(String shareToken) {
+    public SharedPortfolioResponse getSharePortfolio(String shareToken) {
         PortfolioEntity portfolioEntity = portfolioRepository.findByShareToken(shareToken)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
         try {
@@ -314,7 +317,7 @@ public class PortfolioService {
                             portfolioEntity.getImagesJson(),
                             PortfolioImageDTO.class
                     );
-            return SharedPortfortfolioResponse.builder()
+            return SharedPortfolioResponse.builder()
                     .id(portfolioEntity.getId())
                     .projectName(portfolioEntity.getProject().getTitle())
                     .overview(portfolioEntity.getOverview())
@@ -396,8 +399,8 @@ public class PortfolioService {
                     .metrics(portfolio.getMetrics())
                     .images(images)
                     .status(portfolio.getStatus())
-                    .isPublic(false)
-                    .shareToken(null)
+                    .isPublic(portfolio.isPublic())
+                    .shareToken(portfolio.getShareToken())
                     .createdAt(portfolio.getCreatedAt())
                     .updatedAt(portfolio.getUpdatedAt())
                     .build();

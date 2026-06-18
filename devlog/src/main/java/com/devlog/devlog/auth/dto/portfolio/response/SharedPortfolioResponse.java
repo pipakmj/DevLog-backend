@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SharedPortfortfolioResponse {
+public class SharedPortfolioResponse {
     private Long id;
     private String projectName;
     private String overview;
