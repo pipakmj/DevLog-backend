@@ -34,6 +34,9 @@ public class PortfolioEntity {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    private boolean isPublic;
+    @Column(unique = true)
+    private String shareToken;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId")

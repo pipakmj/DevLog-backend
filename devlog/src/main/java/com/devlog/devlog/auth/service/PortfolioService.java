@@ -18,10 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -232,6 +229,47 @@ public class PortfolioService {
         return PdfDownloadResponse.builder()
                 .fileName(request.getFileName())
                 .pdfBytes(pdfBytes)
+                .build();
+    }
+
+    @Transactional
+    public SharePortfolioResponse sharePortfolio(
+            String userEmail,
+            Long portfolioId,
+            SharePortfolioRequest request
+    ){
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        PortfolioEntity portfolioEntity = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
+
+        if(portfolioEntity.getProject().getUserEntity().getId() != user.getId()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
+        }
+        portfolioEntity.setPublic(request.isPublic());
+        if (Boolean.TRUE.equals(request.isPublic())) {
+            if(portfolioEntity.getShareToken() == null) {
+                portfolioEntity.setShareToken(
+                        "pf_" + UUID.randomUUID()
+                                .toString()
+                                .replace("-", "")
+                                .substring(0, 8)
+                );
+            }
+        } else {
+            portfolioEntity.setShareToken(null);
+        }
+        portfolioRepository.save(portfolioEntity);
+        String shareUrl = portfolioEntity.getShareToken() == null
+                ? null
+                : "http://localhost:5173/portfolio/share/"
+                + portfolioEntity.getShareToken();
+        return SharePortfolioResponse.builder()
+                .portfolioId(portfolioId)
+                .isPublic(request.isPublic())
+                .shareToken(portfolioEntity.getShareToken())
+                .shareUrl(shareUrl)
                 .build();
     }
 

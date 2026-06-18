@@ -27,7 +27,7 @@ public class CommentEntity {
 
     private Long parentId;
 
-    private  boolean isDeleted;
+    private boolean isDeleted;
 
     @ManyToOne
     @JoinColumn(name="userId")

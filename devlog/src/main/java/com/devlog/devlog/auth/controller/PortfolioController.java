@@ -2,6 +2,7 @@ package com.devlog.devlog.auth.controller;
 
 import com.devlog.devlog.auth.dto.portfolio.request.CreatePortfolioRequest;
 import com.devlog.devlog.auth.dto.portfolio.request.PortfolioPdfRequest;
+import com.devlog.devlog.auth.dto.portfolio.request.SharePortfolioRequest;
 import com.devlog.devlog.auth.dto.portfolio.response.*;
 
 import com.devlog.devlog.auth.service.PortfolioService;
@@ -79,5 +80,14 @@ public class PortfolioController {
                 HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + pdf.getFileName() + "\""
         ).contentType(MediaType.APPLICATION_PDF).body(pdf.getPdfBytes());
+    }
+    @PostMapping("/portfolios/{portfolioId}/share")
+    public ResponseEntity<ApiResponse<SharePortfolioResponse>> sharePortfolio(
+            Authentication authentication,
+            @PathVariable Long portfolioId,
+            @RequestBody SharePortfolioRequest request
+    ){
+        SharePortfolioResponse res = portfolioService.sharePortfolio(authentication.getName(), portfolioId, request);
+        return ResponseEntity.ok(ApiResponse.success("공유 링크 생성 성공", res));
     }
 }
