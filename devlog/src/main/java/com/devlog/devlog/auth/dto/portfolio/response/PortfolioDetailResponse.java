@@ -1,8 +1,8 @@
 package com.devlog.devlog.auth.dto.portfolio.response;
 
-import com.devlog.devlog.auth.dto.portfolio.request.FeatureDTO;
-import com.devlog.devlog.auth.dto.portfolio.request.PortfolioImageDTO;
-import com.devlog.devlog.auth.dto.portfolio.request.TroubleshootDTO;
+import com.devlog.devlog.auth.dto.portfolio.FeatureDTO;
+import com.devlog.devlog.auth.dto.portfolio.PortfolioImageDTO;
+import com.devlog.devlog.auth.dto.portfolio.TroubleshootDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

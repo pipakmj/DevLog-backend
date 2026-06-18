@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto.portfolio.request;
+package com.devlog.devlog.auth.dto.portfolio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TroubleshootDTO {
-    private String issue;
-    private String resolution;
+public class ImageDTO {
+    private String imageUrl;
+    private String description;
 }

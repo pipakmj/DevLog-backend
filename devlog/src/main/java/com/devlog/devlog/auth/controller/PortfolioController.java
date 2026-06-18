@@ -1,5 +1,6 @@
 package com.devlog.devlog.auth.controller;
 
+import com.devlog.devlog.auth.dto.portfolio.request.AiFeedbackRequest;
 import com.devlog.devlog.auth.dto.portfolio.request.CreatePortfolioRequest;
 import com.devlog.devlog.auth.dto.portfolio.request.PortfolioPdfRequest;
 import com.devlog.devlog.auth.dto.portfolio.request.SharePortfolioRequest;
@@ -60,6 +61,14 @@ public class PortfolioController {
     ){
         DeletePortfolioResponse res = portfolioService.deletePortfolio(authentication.getName(), portfolioId);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 삭제 성공", res));
+    }
+    @PostMapping("/portfolios/ai-feedback")
+    public ResponseEntity<ApiResponse<AiFeedbackResponse>> createAiFeedback(
+            Authentication authentication,
+            @RequestBody AiFeedbackRequest request
+    ){
+        AiFeedbackResponse res = portfolioService.createAiFeedback(authentication.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success("AI 진단 성공", res));
     }
     @PostMapping(
             value = "/portfolios/{portfolioId}/pdf",

@@ -1,5 +1,9 @@
 package com.devlog.devlog.auth.service;
 
+import com.devlog.devlog.auth.dto.portfolio.FeatureDTO;
+import com.devlog.devlog.auth.dto.portfolio.ImageDTO;
+import com.devlog.devlog.auth.dto.portfolio.PortfolioImageDTO;
+import com.devlog.devlog.auth.dto.portfolio.TroubleshootDTO;
 import com.devlog.devlog.auth.dto.portfolio.request.*;
 import com.devlog.devlog.auth.dto.portfolio.response.*;
 import com.devlog.devlog.auth.entity.PortfolioEntity;
@@ -28,6 +32,7 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final ObjectMapper objectMapper;
     private final PdfGenerator pdfGenerator;
+    private final GeminiService geminiService;
 
     @Transactional
     public PortfolioResponse createPortfolio(
@@ -208,6 +213,18 @@ public class PortfolioService {
         return DeletePortfolioResponse.builder()
                 .portfolioId(portfolioId)
                 .build();
+    }
+
+    public AiFeedbackResponse createAiFeedback(String userEmail, AiFeedbackRequest request){
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        ProjectEntity project = projectRepository.findById(request.getProjectId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        if(!project.getUserEntity().equals(user)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PROJECT_ACCESS);
+        }
+        return geminiService.PortfolioAiFeedback(request);
     }
 
     public PdfDownloadResponse generatePdf(

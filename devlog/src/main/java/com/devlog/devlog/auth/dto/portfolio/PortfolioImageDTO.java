@@ -1,4 +1,4 @@
-package com.devlog.devlog.auth.dto.portfolio.request;
+package com.devlog.devlog.auth.dto.portfolio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

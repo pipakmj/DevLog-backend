@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreatePortfolioRequest {
+public class AiFeedbackRequest {
     private Long projectId;
     private String overview;
     private String roles;
@@ -21,5 +19,4 @@ public class CreatePortfolioRequest {
     private List<TroubleshootDTO> troubleshoots;
     private String metrics;
     private PortfolioImageDTO images;
-    private String status;
 }
