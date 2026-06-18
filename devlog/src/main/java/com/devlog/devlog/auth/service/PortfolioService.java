@@ -1,16 +1,14 @@
 package com.devlog.devlog.auth.service;
 
 import com.devlog.devlog.auth.dto.portfolio.request.*;
-import com.devlog.devlog.auth.dto.portfolio.response.DeletePortfolioResponse;
-import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
-import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
-import com.devlog.devlog.auth.dto.portfolio.response.ProjectPortfolioResponse;
+import com.devlog.devlog.auth.dto.portfolio.response.*;
 import com.devlog.devlog.auth.entity.PortfolioEntity;
 import com.devlog.devlog.auth.entity.ProjectEntity;
 import com.devlog.devlog.auth.entity.UserEntity;
 import com.devlog.devlog.auth.repository.PortfolioRepository;
 import com.devlog.devlog.auth.repository.ProjectRepository;
 import com.devlog.devlog.auth.repository.UserRepository;
+import com.devlog.devlog.global.common.PdfGenerator;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +30,7 @@ public class PortfolioService {
     private final ProjectRepository projectRepository;
     private final PortfolioRepository portfolioRepository;
     private final ObjectMapper objectMapper;
+    private final PdfGenerator pdfGenerator;
 
     @Transactional
     public PortfolioResponse createPortfolio(
@@ -211,6 +210,28 @@ public class PortfolioService {
         portfolioRepository.delete(portfolioEntity);
         return DeletePortfolioResponse.builder()
                 .portfolioId(portfolioId)
+                .build();
+    }
+
+    public PdfDownloadResponse generatePdf(
+            String userEmail,
+            Long portfolioId,
+            PortfolioPdfRequest request
+    ) throws JsonProcessingException {
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        PortfolioEntity portfolioEntity = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
+
+        if(portfolioEntity.getProject().getUserEntity().getId() != user.getId()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
+        }
+        byte[] pdfBytes = pdfGenerator.generatePdf(portfolioEntity);
+
+        return PdfDownloadResponse.builder()
+                .fileName(request.getFileName())
+                .pdfBytes(pdfBytes)
                 .build();
     }
 

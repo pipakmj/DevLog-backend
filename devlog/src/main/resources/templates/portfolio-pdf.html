@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Portfolio</title>
+
+    <style>
+        /* ─── Page Setup ─────────────────────────────────── */
+        @page {
+            size: A4;
+            margin: 25mm 20mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+            font-size: 11px;
+            line-height: 1.7;
+            color: #334155;
+            background: #ffffff;
+        }
+
+        /* ─── PDF Header ─────────────────────────────────── */
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 3px solid #1e293b;
+            padding-bottom: 14px;
+            margin-bottom: 28px;
+        }
+
+        .pdf-header-left h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .pdf-subtitle {
+            font-size: 9px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .pdf-meta {
+            font-size: 9px;
+            color: #6b7280;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        /* ─── Section Grid ───────────────────────────────── */
+        .pdf-grid-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* ─── Section Title ──────────────────────────────── */
+        .pdf-section h2 {
+            font-size: 12px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pdf-section h2::before {
+            content: "";
+            display: inline-block;
+            width: 22px;
+            height: 4px;
+            background: #4f46e5;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ─── Content Box (개요, 역할, 성과) ─────────────── */
+        .pdf-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 18px;
+        }
+
+        .pdf-text {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            color: #334155;
+            font-size: 11px;
+        }
+
+        .pdf-code {
+            white-space: pre-wrap;
+            font-family: "Noto Sans KR", monospace;
+            line-height: 1.6;
+            color: #1f2937;
+            font-size: 10px;
+        }
+
+        /* ─── Tech Stack Badges ──────────────────────────── */
+        .pdf-tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            list-style: none;
+        }
+
+        .pdf-tech-item {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 9px;
+            border: 1px solid #c7d2fe;
+        }
+
+        /* ─── Feature Cards ──────────────────────────────── */
+        .pdf-feature-list,
+        .pdf-troubleshoot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pdf-item-card {
+            background: #f8fafc;
+            border-left: 4px solid #0ea5e9;
+            padding: 14px 16px;
+            border-radius: 4px 8px 8px 4px;
+        }
+
+        .pdf-item-title {
+            font-size: 11px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        /* ─── Troubleshoot Cards ─────────────────────────── */
+        .ts-card {
+            border-left-color: #f59e0b;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ts-issue,
+        .ts-resolution {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .ts-label-issue {
+            font-weight: 700;
+            color: #b45309;
+            font-size: 10px;
+        }
+
+        .ts-label-resolution {
+            font-weight: 700;
+            color: #15803d;
+            font-size: 10px;
+        }
+
+        /* ─── Page Break ─────────────────────────────────── */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* ─── Image Grid ─────────────────────────────────── */
+        .pdf-images-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            width: 100%;
+        }
+
+        .pdf-image-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-image-block.full {
+            grid-column: 1 / -1;
+        }
+
+        .pdf-image-block h4 {
+            margin: 0;
+            padding: 10px 12px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 9px;
+            color: #475569;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .pdf-img-wrapper {
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .pdf-img-wrapper img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+        }
+
+        .pdf-image-description {
+            padding: 0 12px 12px;
+            color: #475569;
+            font-size: 9px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* ─── Footer ─────────────────────────────────────── */
+        .pdf-footer {
+            text-align: center;
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 40px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- HEADER                                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="pdf-header">
+    <div class="pdf-header-left">
+        <h1 th:text="${projectName}">Project Name</h1>
+        <p class="pdf-subtitle">Project Portfolio Report</p>
+    </div>
+    <div class="pdf-meta">
+        <span th:text="'Date: ' + ${generatedAt}">Date: 2026-06-18</span>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTIONS                                           -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="pdf-grid-layout">
+
+    <!-- 1. Executive Summary (개요) -->
+    <div class="pdf-section">
+        <h2>1. Executive Summary (개요)</h2>
+        <div class="pdf-box">
+            <p class="pdf-text" th:text="${overview}"></p>
+        </div>
+    </div>
+
+    <!-- 2. Responsibilities (역할) -->
+    <div class="pdf-section">
+        <h2>2. Responsibilities (역할)</h2>
+        <div class="pdf-box">
+            <pre class="pdf-code" th:text="${roles}"></pre>
+        </div>
+    </div>
+
+    <!-- 3. Technology Stack -->
+    <div class="pdf-section">
+        <h2>3. Technology Stack</h2>
+        <ul class="pdf-tech-list">
+            <li class="pdf-tech-item"
+                th:each="tech : ${techStacks}"
+                th:text="${tech}">
+            </li>
+        </ul>
+    </div>
+
+    <!-- 4. Key Features (주요 기능) -->
+    <div class="pdf-section" th:if="${features != null and !#lists.isEmpty(features)}">
+        <h2>4. Key Features (주요 기능)</h2>
+        <div class="pdf-feature-list">
+            <div class="pdf-item-card" th:each="feature : ${features}">
+                <div class="pdf-item-title" th:text="${feature.title}"></div>
+                <p class="pdf-text" th:text="${feature.description}"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Troubleshooting (문제 해결) -->
+    <div class="pdf-section" th:if="${troubleshoots != null and !#lists.isEmpty(troubleshoots)}">
+        <h2>5. Troubleshooting (문제 해결)</h2>
+        <div class="pdf-troubleshoot-list">
+            <div class="pdf-item-card ts-card" th:each="trouble : ${troubleshoots}">
+                <div class="ts-issue">
+                    <span class="ts-label-issue">문제:</span>
+                    <p class="pdf-text" th:text="${trouble.issue}"></p>
+                </div>
+                <div class="ts-resolution">
+                    <span class="ts-label-resolution">해결/결과:</span>
+                    <p class="pdf-text" th:text="${trouble.resolution}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Outcomes & Metrics (성과 및 지표) -->
+    <div class="pdf-section" th:if="${metrics != null and metrics != ''}">
+        <h2>6. Outcomes &amp; Metrics (성과 및 지표)</h2>
+        <div class="pdf-box">
+            <p class="pdf-text" th:text="${metrics}"></p>
+        </div>
+    </div>
+
+    <!-- 7. Architecture & Interface (시각 자료) -->
+    <div class="pdf-section"
+         th:if="${(architectureImageUrl != null) or (erdImageUrl != null) or (uiImages != null and !#lists.isEmpty(uiImages))}">
+        <h2>7. Architecture &amp; Interface</h2>
+        <div class="pdf-images-grid">
+
+            <!-- 시스템 아키텍처 -->
+            <div class="pdf-image-block full" th:if="${architectureImageUrl != null}">
+                <h4>시스템 아키텍처</h4>
+                <div class="pdf-img-wrapper">
+                    <img th:src="${architectureImageUrl}" alt="시스템 아키텍처" />
+                </div>
+                <p class="pdf-image-description"
+                   th:if="${architectureDescription != null and architectureDescription != ''}"
+                   th:text="${architectureDescription}">
+                </p>
+            </div>
+
+            <!-- 데이터베이스 ERD -->
+            <div class="pdf-image-block" th:if="${erdImageUrl != null}">
+                <h4>데이터베이스 ERD</h4>
+                <div class="pdf-img-wrapper">
+                    <img th:src="${erdImageUrl}" alt="데이터베이스 ERD" />
+                </div>
+                <p class="pdf-image-description"
+                   th:if="${erdDescription != null and erdDescription != ''}"
+                   th:text="${erdDescription}">
+                </p>
+            </div>
+
+            <!-- 주요 UI 화면 -->
+            <div class="pdf-image-block"
+                 th:each="ui, uiStat : ${uiImages}"
+                 th:if="${uiImages != null}">
+                <h4 th:text="${#lists.size(uiImages) > 1} ? '주요 UI 화면 (' + ${uiStat.index + 1} + ')' : '주요 UI 화면'">
+                    주요 UI 화면
+                </h4>
+                <div class="pdf-img-wrapper">
+                    <img th:src="${ui.imageUrl}" alt="UI 화면" />
+                </div>
+                <p class="pdf-image-description"
+                   th:if="${ui.description != null and ui.description != ''}"
+                   th:text="${ui.description}">
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- FOOTER                                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="pdf-footer">
+    Generated By DevLog Portfolio Builder
+</div>
+
+</body>
+</html>

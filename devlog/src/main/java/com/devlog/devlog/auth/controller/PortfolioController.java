@@ -1,15 +1,15 @@
 package com.devlog.devlog.auth.controller;
 
 import com.devlog.devlog.auth.dto.portfolio.request.CreatePortfolioRequest;
-import com.devlog.devlog.auth.dto.portfolio.response.DeletePortfolioResponse;
-import com.devlog.devlog.auth.dto.portfolio.response.PortfolioDetailResponse;
-import com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse;
+import com.devlog.devlog.auth.dto.portfolio.request.PortfolioPdfRequest;
+import com.devlog.devlog.auth.dto.portfolio.response.*;
 
-import com.devlog.devlog.auth.dto.portfolio.response.ProjectPortfolioResponse;
 import com.devlog.devlog.auth.service.PortfolioService;
 import com.devlog.devlog.global.common.ApiResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -59,5 +59,25 @@ public class PortfolioController {
     ){
         DeletePortfolioResponse res = portfolioService.deletePortfolio(authentication.getName(), portfolioId);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 삭제 성공", res));
+    }
+    @PostMapping(
+            value = "/portfolios/{portfolioId}/pdf",
+            produces = MediaType.APPLICATION_PDF_VALUE
+    )
+    public ResponseEntity<byte[]> downloadPdf(
+            Authentication authentication,
+            @PathVariable Long portfolioId,
+            @RequestBody PortfolioPdfRequest request
+    ) throws JsonProcessingException {
+        PdfDownloadResponse pdf =
+                portfolioService.generatePdf(
+                        authentication.getName(),
+                        portfolioId,
+                        request
+                );
+        return ResponseEntity.ok().header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + pdf.getFileName() + "\""
+        ).contentType(MediaType.APPLICATION_PDF).body(pdf.getPdfBytes());
     }
 }
