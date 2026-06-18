@@ -36,6 +36,9 @@ dependencies {
     implementation 'com.sendgrid:sendgrid-java:4.10.1'
     implementation "org.springframework.boot:spring-boot-starter-data-redis"
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.17'
+    implementation 'com.openhtmltopdf:openhtmltopdf-core:1.0.10'
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     compileOnly 'org.projectlombok:lombok'
