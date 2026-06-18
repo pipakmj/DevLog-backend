@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface PortfolioRepository extends JpaRepository<PortfolioEntity, Long> {
     Optional<PortfolioEntity> findByProjectId(Long projectId);
+    Optional<PortfolioEntity> findByShareToken(String shareToken);
 }

@@ -273,6 +273,47 @@ public class PortfolioService {
                 .build();
     }
 
+    public SharedPortfortfolioResponse getSharePortfolio(String shareToken) {
+        PortfolioEntity portfolioEntity = portfolioRepository.findByShareToken(shareToken)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
+        try {
+            List<String> techStack =
+                    objectMapper.readValue(
+                            portfolioEntity.getTechStackJson(),
+                            new TypeReference<List<String>>() {}
+                    );
+            List<FeatureDTO> features =
+                    objectMapper.readValue(
+                            portfolioEntity.getFeaturesJson(),
+                            new TypeReference<List<FeatureDTO>>() {}
+                    );
+            List<TroubleshootDTO> troubleshoots =
+                    objectMapper.readValue(
+                            portfolioEntity.getTroubleshootsJson(),
+                            new TypeReference<List<TroubleshootDTO>>() {}
+                    );
+            PortfolioImageDTO images =
+                    objectMapper.readValue(
+                            portfolioEntity.getImagesJson(),
+                            PortfolioImageDTO.class
+                    );
+            return SharedPortfortfolioResponse.builder()
+                    .id(portfolioEntity.getId())
+                    .projectName(portfolioEntity.getProject().getTitle())
+                    .overview(portfolioEntity.getOverview())
+                    .roles(portfolioEntity.getRoles())
+                    .techStack(techStack)
+                    .features(features)
+                    .troubleshoots(troubleshoots)
+                    .metrics(portfolioEntity.getMetrics())
+                    .images(images)
+                    .updatedAt(portfolioEntity.getUpdatedAt())
+                    .build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void validateCompleted(
             CreatePortfolioRequest request
     ) {
