@@ -59,6 +59,9 @@ public class PortfolioService {
                 PortfolioEntity.builder()
                         .overview(request.getOverview())
                         .roles(request.getRoles())
+                        .projectPeriod(request.getProjectPeriod())
+                        .teamSize(request.getTeamSize())
+                        .primaryRole(request.getPrimaryRole())
                         .techStackJson(
                                 objectMapper.writeValueAsString(
                                         request.getTechStack()
@@ -148,6 +151,15 @@ public class PortfolioService {
         );
         portfolioEntity.setMetrics(
                 request.getMetrics()
+        );
+        portfolioEntity.setProjectPeriod(
+                request.getProjectPeriod()
+        );
+        portfolioEntity.setTeamSize(
+                request.getTeamSize()
+        );
+        portfolioEntity.setPrimaryRole(
+                request.getPrimaryRole()
         );
         portfolioEntity.setStatus(
                 request.getStatus()
@@ -393,6 +405,9 @@ public class PortfolioService {
                     .projectName(portfolio.getProject().getTitle())
                     .overview(portfolio.getOverview())
                     .roles(portfolio.getRoles())
+                    .projectPeriod(portfolio.getProjectPeriod())
+                    .teamSize(portfolio.getTeamSize())
+                    .primaryRole(portfolio.getPrimaryRole())
                     .techStack(techStack)
                     .features(features)
                     .troubleshoots(troubleshoots)
@@ -416,6 +431,9 @@ public class PortfolioService {
                 .projectName(project.getTitle())
                 .overview("")
                 .roles("")
+                .projectPeriod("")
+                .teamSize("")
+                .primaryRole("")
                 .techStack(Arrays.stream(
                         project.getTechStack().split(",")
                 ).map(String::trim).toList()

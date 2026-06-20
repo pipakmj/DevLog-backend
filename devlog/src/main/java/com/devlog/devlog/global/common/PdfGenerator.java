@@ -14,6 +14,9 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -63,9 +66,14 @@ public class PdfGenerator {
                         portfolioEntity.getImagesJson(),
                         PortfolioImageDTO.class
                 );
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Context context = new Context();
         context.setVariable("projectName", portfolioEntity.getProject().getTitle());
-        context.setVariable("generatedAt", portfolioEntity.getUpdatedAt());
+        context.setVariable("generatedAt", portfolioEntity.getUpdatedAt().format(dateFormat));
+        context.setVariable("projectPeriod", portfolioEntity.getProjectPeriod());
+        context.setVariable("teamSize", portfolioEntity.getTeamSize());
+        context.setVariable("primaryRole", portfolioEntity.getPrimaryRole());
+        context.setVariable("techStackSummary", techStacks);
         context.setVariable("overview", portfolioEntity.getOverview());
         context.setVariable("roles", portfolioEntity.getRoles());
         context.setVariable("metrics", portfolioEntity.getMetrics());

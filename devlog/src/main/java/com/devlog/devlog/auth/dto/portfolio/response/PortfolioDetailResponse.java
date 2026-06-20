@@ -21,6 +21,9 @@ public class PortfolioDetailResponse {
     private String projectName;
     private String overview;
     private String roles;
+    private String projectPeriod;
+    private String teamSize;
+    private String primaryRole;
     private List<String> techStack;
     private List<FeatureDTO> features;
     private List<TroubleshootDTO> troubleshoots;

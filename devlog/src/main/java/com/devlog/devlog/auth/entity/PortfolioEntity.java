@@ -20,6 +20,9 @@ public class PortfolioEntity {
     private Long id;
     private String overview;
     private String roles;
+    private String projectPeriod;
+    private String teamSize;
+    private String primaryRole;
     @Column(columnDefinition = "TEXT")
     private String techStackJson;
     @Column(columnDefinition = "TEXT")
