@@ -148,28 +148,40 @@ public class GeminiService {
                 }
 
                 return """
-                                다음은 사용자가 입력 중인 포트폴리오 데이터입니다.
-                                
-                                [포트폴리오 데이터]
-                                %s
-                                
-                                위 데이터를 기반으로 포트폴리오를 진단하고 개선 사항을 도출해 주세요.
-                                반드시 아래 구조의 **순수 JSON 포맷으로만** 답변해야 합니다. 마크다운 기호(```json)나 앞뒤 설명은 절대 포함하지 마세요.
-                                
-                                {
-                                  "score": 0~100 사이의 정수 점수,
-                                  "missingSections": ["부족하거나 더 채워야 할 세션명 영문 리스트(예: troubleshoots, metrics)"],
-                                  "suggestions": ["구체적인 피드백 문장 1", "구체적인 피드백 문장 2"],
-                                  "autoCompletedFields": {
-                                    "metrics": "데이터를 기반으로 AI가 제안하는 모범적인 정량적 성과/지표 예시 문장 (한국어)",
-                                    "troubleshoots": [
-                                      {
-                                        "issue": "부족한 부분에 대한 예상 발생 문제 기술",
-                                        "resolution": "해당 문제를 해결하기 위한 구체적인 기술적 접근법 제안"
-                                      }
-                                    ]
-                                  }
-                                }
-                                """.formatted(requestJson);
+                        다음은 사용자가 입력 중인 포트폴리오 데이터입니다.
+                        
+                        [포트폴리오 데이터]
+                        %s
+                        
+                        [진단 가이드라인]
+                        1. 위 데이터를 기반으로 포트폴리오의 완성도를 진단하고 개선 사항을 도출하세요.
+                        2. 피드백 문구(suggestions) 작성 시, 기술적인 JSON 키 경로(예: images.erd.description) 대신 반드시 아래의 **한글 항목명**을 사용하세요:
+                           - overview: 프로젝트 개요
+                           - roles: 담당 역할
+                           - tech: 기술 스택
+                           - features: 주요 기능
+                           - troubleshoots: 트러블슈팅
+                           - metrics: 성과 및 지표
+                           - architecture: 시스템 아키텍처
+                           - erd: 데이터베이스 ERD
+                           - ui: 주요 UI 화면
+                        3. "설명이 부족합니다", "구체적인 수치를 추가하세요"와 같이 사용자에게 직접적인 조언을 하는 말투를 사용하세요.
+                        4. 반드시 아래 구조의 **순수 JSON 포맷으로만** 답변해야 합니다. 마크다운 기호(```json)나 설명은 절대 포함하지 마세요.
+                        
+                        {
+                          "score": 0~100 사이의 정수 점수,
+                          "missingSections": ["부족한 섹션 영문 키 리스트"],
+                          "suggestions": ["사용자가 이해하기 쉬운 한글 피드백 문장 1", "한글 피드백 문장 2"],
+                          "autoCompletedFields": {
+                            "metrics": "AI가 제안하는 모범적인 성과 문장",
+                            "troubleshoots": [
+                              {
+                                "issue": "예상 문제",
+                                "resolution": "해결 방안"
+                              }
+                            ]
+                          }
+                        }
+                        """.formatted(requestJson);
         }
 }
