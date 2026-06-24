@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -38,5 +39,22 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
                                 .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
                                                 ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
+        }
+
+        @ExceptionHandler(AiFeedbackLimitException.class)
+        protected ResponseEntity<ApiResponse<?>> handleAiLimit(
+                AiFeedbackLimitException e
+        ) {
+
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(
+                                ApiResponse.error(
+                                        "오늘 AI 개선 사용량을 모두 사용했습니다. 내일 다시 시도해 주세요.",
+                                        Map.of(
+                                                "usageLimit",
+                                                e.getUsageLimitResponse()
+                                        )
+                                )
+                        );
         }
 }

@@ -29,30 +29,35 @@ public class GitAnalyzeController {
     private final int MAX_REQUEST_LIMIT = 5;
 
     @PostMapping("/analyze")
-    public ResponseEntity<ApiResponse<GitAnalyzeResponse>> analyzeRepo(@RequestBody GitAnalyzeRequest request,
+    public ResponseEntity<ApiResponse<GitAnalyzeResponse>> analyzeRepo(
+            @RequestBody GitAnalyzeRequest request,
             Authentication authentication) {
 
         String userEmail = authentication.getName();
         String limitKey = RATE_LIMIT_PREFIX + userEmail;
 
-        String countStr = redisTemplate.opsForValue().get(limitKey);
-        int count = countStr != null ? Integer.parseInt(countStr) : 0;
+        Long count = redisTemplate.opsForValue().increment(limitKey);
 
-        if (count >= MAX_REQUEST_LIMIT)
-            throw new BusinessException(ErrorCode.API_RATE_LIMIT_EXCEEDED);
-
-        // 핵심 로직은 service로 분리해서 캐싱
-        GitAnalyzeResponse response = gitAnalyzeService.analyze(request.getGitUrl());
-
-        Long newCount = redisTemplate.opsForValue().increment(limitKey);
-        if (newCount != null && newCount == 1L) {
-            redisTemplate.expire(limitKey, Duration.ofDays(1));
+        if (count != null && count == 1L) {
+            redisTemplate.expire(limitKey, Duration.ofDays(5));
         }
 
-        int remaining = MAX_REQUEST_LIMIT - newCount.intValue();
+        if (count != null && count > MAX_REQUEST_LIMIT) {
+            throw new BusinessException(ErrorCode.API_RATE_LIMIT_EXCEEDED);
+        }
+
+        GitAnalyzeResponse response =
+                gitAnalyzeService.analyze(request.getGitUrl());
+
+        int remaining = MAX_REQUEST_LIMIT - count.intValue();
+
         return ResponseEntity.ok()
-                .header("X-RateLimit-Limit", String.valueOf(MAX_REQUEST_LIMIT))
-                .header("X-RateLimit-Remaining", String.valueOf(remaining))
-                .body(ApiResponse.success("프로젝트 분석이 완료 되었습니다.", response));
+                .header("X-RateLimit-Limit",
+                        String.valueOf(MAX_REQUEST_LIMIT))
+                .header("X-RateLimit-Remaining",
+                        String.valueOf(remaining))
+                .body(ApiResponse.success(
+                        "프로젝트 분석이 완료 되었습니다.",
+                        response));
     }
 }
