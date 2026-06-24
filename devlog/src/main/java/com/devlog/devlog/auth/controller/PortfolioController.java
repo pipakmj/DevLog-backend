@@ -8,19 +8,28 @@ import com.devlog.devlog.auth.dto.portfolio.response.*;
 
 import com.devlog.devlog.auth.service.PortfolioService;
 import com.devlog.devlog.global.common.ApiResponse;
+import com.devlog.devlog.global.exception.BusinessException;
+import com.devlog.devlog.global.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class PortfolioController {
     private final PortfolioService portfolioService;
+    private static final String RATE_LIMIT_PREFIX = "portfolio_feedback_limit:";
+    private final int MAX_REQUEST_LIMIT = 5;
+    private final StringRedisTemplate redisTemplate;
+
     @PostMapping("/portfolios")
     public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
             Authentication authentication,
@@ -29,6 +38,7 @@ public class PortfolioController {
         PortfolioResponse res = portfolioService.createPortfolio(authentication.getName(), request);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 저장 성공", res));
     }
+
     @GetMapping("/portfolios/{portfolioId}")
     public ResponseEntity<ApiResponse<PortfolioDetailResponse>> getPortfolio(
             Authentication authentication,
@@ -37,6 +47,7 @@ public class PortfolioController {
         PortfolioDetailResponse res = portfolioService.getPortfolio(authentication.getName(), portfolioId);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 조회 성공", res));
     }
+
     @GetMapping("/projects/{projectId}/portfolio")
     public ResponseEntity<ApiResponse<ProjectPortfolioResponse>> getProjectPortfolio(
             Authentication authentication,
@@ -45,6 +56,7 @@ public class PortfolioController {
         ProjectPortfolioResponse res = portfolioService.getProjectPortfolio(authentication.getName(), projectId);
         return ResponseEntity.ok(ApiResponse.success("프로젝트 포트폴리오 조회 성공", res));
     }
+
     @PatchMapping("/portfolios/{portfolioID}")
     public ResponseEntity<ApiResponse<PortfolioResponse>> updatePortfolio(
             Authentication authentication,
@@ -54,6 +66,7 @@ public class PortfolioController {
         PortfolioResponse res = portfolioService.updatePortfolio(authentication.getName(), portfolioID, request);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 수정 성공", res));
     }
+
     @DeleteMapping("/portfolios/{portfolioId}")
     public ResponseEntity<ApiResponse<DeletePortfolioResponse>> deletePortfolio(
             Authentication authentication,
@@ -62,14 +75,33 @@ public class PortfolioController {
         DeletePortfolioResponse res = portfolioService.deletePortfolio(authentication.getName(), portfolioId);
         return ResponseEntity.ok(ApiResponse.success("포트폴리오 삭제 성공", res));
     }
+
     @PostMapping("/portfolios/ai-feedback")
     public ResponseEntity<ApiResponse<AiFeedbackResponse>> createAiFeedback(
             Authentication authentication,
             @RequestBody AiFeedbackRequest request
     ){
-        AiFeedbackResponse res = portfolioService.createAiFeedback(authentication.getName(), request);
+        String userEmail = authentication.getName();
+        String limitKey = RATE_LIMIT_PREFIX + userEmail;
+
+        Long count = redisTemplate.opsForValue().increment(limitKey);
+
+        if (count != null && count == 1L) {
+            redisTemplate.expire(limitKey, Duration.ofDays(5));
+        }
+
+        if (count != null && count > MAX_REQUEST_LIMIT) {
+            throw new BusinessException(ErrorCode.API_RATE_LIMIT_EXCEEDED);
+        }
+
+        AiFeedbackResponse res = portfolioService.createAiFeedback(userEmail, request);
+        Long newCount = redisTemplate.opsForValue().increment(limitKey);
+        if (newCount != null && newCount == 1L) {
+            redisTemplate.expire(limitKey, Duration.ofDays(1));
+        }
         return ResponseEntity.ok(ApiResponse.success("AI 진단 성공", res));
     }
+
     @PostMapping(
             value = "/portfolios/{portfolioId}/pdf",
             produces = MediaType.APPLICATION_PDF_VALUE
@@ -90,6 +122,7 @@ public class PortfolioController {
                 "attachment; filename=\"" + pdf.getFileName() + "\""
         ).contentType(MediaType.APPLICATION_PDF).body(pdf.getPdfBytes());
     }
+
     @PostMapping("/portfolios/{portfolioId}/share")
     public ResponseEntity<ApiResponse<SharePortfolioResponse>> sharePortfolio(
             Authentication authentication,
@@ -99,6 +132,7 @@ public class PortfolioController {
         SharePortfolioResponse res = portfolioService.sharePortfolio(authentication.getName(), portfolioId, request);
         return ResponseEntity.ok(ApiResponse.success("공유 링크 생성 성공", res));
     }
+
     @GetMapping("/portfolios/share/{shareToken}")
     public ResponseEntity<ApiResponse<SharedPortfolioResponse>> getSharePortfolio(@PathVariable String shareToken) {
         SharedPortfolioResponse res = portfolioService.getSharePortfolio(shareToken);
