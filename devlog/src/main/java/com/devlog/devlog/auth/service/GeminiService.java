@@ -32,12 +32,7 @@ public class GeminiService {
 
         private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-        @Retryable(
-                retryFor = HttpServerErrorException.class,
-                noRetryFor = HttpClientErrorException.class,
-                maxAttempts = 3,
-                backoff = @Backoff(delay = 2000, multiplier = 2)
-        )
+        @Retryable(retryFor = HttpServerErrorException.class, noRetryFor = HttpClientErrorException.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
         public String summarize(String readme, List<String> commits) {
                 String prompt = buildPrompt(readme, commits);
                 // Gemini API 요청 바디 구성
@@ -66,21 +61,13 @@ public class GeminiService {
                 return "";
         }
 
-        @Retryable(
-                retryFor = HttpServerErrorException.class,
-                noRetryFor = HttpClientErrorException.class,
-                maxAttempts = 3,
-                backoff = @Backoff(delay = 2000, multiplier = 2)
-        )
+        @Retryable(retryFor = HttpServerErrorException.class, noRetryFor = HttpClientErrorException.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
         public AiFeedbackResponse PortfolioAiFeedback(AiFeedbackRequest request) {
                 String prompt = buildFeedbackPrompt(request);
                 Map<String, Object> requestBody = Map.of(
-                        "contents", List.of(
-                                Map.of("parts", List.of(
-                                        Map.of("text", prompt)
-                                ))
-                        )
-                );
+                                "contents", List.of(
+                                                Map.of("parts", List.of(
+                                                                Map.of("text", prompt)))));
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.set("x-goog-api-key", apiKey);
@@ -88,20 +75,19 @@ public class GeminiService {
                 URI uri = URI.create(GEMINI_URL);
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 ResponseEntity<JsonNode> response = restTemplate.exchange(
-                        uri, HttpMethod.POST, entity, JsonNode.class
-                );
+                                uri, HttpMethod.POST, entity, JsonNode.class);
                 if (response.getBody() != null) {
                         try {
                                 String jsonText = response.getBody()
-                                        .get("candidates").get(0)
-                                        .get("content")
-                                        .get("parts").get(0)
-                                        .get("text").asText();
+                                                .get("candidates").get(0)
+                                                .get("content")
+                                                .get("parts").get(0)
+                                                .get("text").asText();
                                 // 간혹 AI가 텍스트 앞뒤로 ```json ... ``` 을 붙이는 경우가 있으므로 방어 코드 작성
                                 jsonText = jsonText
-                                        .replaceAll("```json", "")
-                                        .replaceAll("```", "")
-                                        .trim();
+                                                .replaceAll("```json", "")
+                                                .replaceAll("```", "")
+                                                .trim();
 
                                 // 2. 받아온 JSON 텍스트를 미리 설계한 DTO 객체 구조로 역직렬화(Deserialization)
                                 ObjectMapper objectMapper = new ObjectMapper();
@@ -148,40 +134,44 @@ public class GeminiService {
                 }
 
                 return """
-                        다음은 사용자가 입력 중인 포트폴리오 데이터입니다.
-                        
-                        [포트폴리오 데이터]
-                        %s
-                        
-                        [진단 가이드라인]
-                        1. 위 데이터를 기반으로 포트폴리오의 완성도를 진단하고 개선 사항을 도출하세요.
-                        2. 피드백 문구(suggestions) 작성 시, 기술적인 JSON 키 경로(예: images.erd.description) 대신 반드시 아래의 **한글 항목명**을 사용하세요:
-                           - overview: 프로젝트 개요
-                           - roles: 담당 역할
-                           - tech: 기술 스택
-                           - features: 주요 기능
-                           - troubleshoots: 트러블슈팅
-                           - metrics: 성과 및 지표
-                           - architecture: 시스템 아키텍처
-                           - erd: 데이터베이스 ERD
-                           - ui: 주요 UI 화면
-                        3. "설명이 부족합니다", "구체적인 수치를 추가하세요"와 같이 사용자에게 직접적인 조언을 하는 말투를 사용하세요.
-                        4. 반드시 아래 구조의 **순수 JSON 포맷으로만** 답변해야 합니다. 마크다운 기호(```json)나 설명은 절대 포함하지 마세요.
-                        
-                        {
-                          "score": 0~100 사이의 정수 점수,
-                          "missingSections": ["부족한 섹션 영문 키 리스트"],
-                          "suggestions": ["사용자가 이해하기 쉬운 한글 피드백 문장 1", "한글 피드백 문장 2"],
-                          "autoCompletedFields": {
-                            "metrics": "AI가 제안하는 모범적인 성과 문장",
-                            "troubleshoots": [
-                              {
-                                "issue": "예상 문제",
-                                "resolution": "해결 방안"
-                              }
-                            ]
-                          }
-                        }
-                        """.formatted(requestJson);
+                                다음은 사용자가 입력 중인 포트폴리오 데이터입니다.
+
+                                [포트폴리오 데이터]
+                                %s
+
+                                [진단 가이드라인]
+                                1. 위 데이터를 기반으로 포트폴리오의 완성도를 진단하고 개선 사항을 도출하세요.
+                                2. 피드백 문구(suggestions) 작성 시, 기술적인 JSON 키 경로(예: images.erd.description) 대신 반드시 아래의 **한글 항목명**을 사용하세요:
+                                   - overview: 프로젝트 개요
+                                   - roles: 담당 역할/기여도
+                                   - projectPeriod: 프로젝트 기간
+                                   - teamSize: 팀 구성 및 인원
+                                   - primaryRole: 주요 직무
+                                   - tech: 기술 스택
+                                   - features: 주요 기능
+                                   - troubleshoots: 트러블슈팅
+                                   - metrics: 성과 및 지표
+                                   - architecture: 시스템 아키텍처
+                                   - erd: 데이터베이스 ERD
+                                   - ui: 주요 UI 화면
+                                3. "설명이 부족합니다", "구체적인 수치를 추가하세요"와 같이 사용자에게 직접적인 조언을 하는 말투를 사용하세요.
+                                4. 반드시 아래 구조의 **순수 JSON 포맷으로만** 답변해야 합니다. 마크다운 기호(```json)나 설명은 절대 포함하지 마세요.
+
+                                {
+                                  "score": 0~100 사이의 정수 점수,
+                                  "missingSections": ["부족한 섹션 영문 키 리스트"],
+                                  "suggestions": ["사용자가 이해하기 쉬운 한글 피드백 문장 1", "한글 피드백 문장 2"],
+                                  "autoCompletedFields": {
+                                    "metrics": "AI가 제안하는 모범적인 성과 문장",
+                                    "troubleshoots": [
+                                      {
+                                        "issue": "예상 문제",
+                                        "resolution": "해결 방안"
+                                      }
+                                    ]
+                                  }
+                                }
+                                """
+                                .formatted(requestJson);
         }
 }

@@ -27,6 +27,7 @@ public enum ErrorCode {
     //Portfolio
     PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND, "PORTFOLIO-001", "포트폴리오를 찾을 수 없습니다."),
     UNAUTHORIZED_PORTFOLIO_ACCESS(HttpStatus.FORBIDDEN, "PORTFOLIO-002", "포트폴리오에 대한 권한이 없습니다."),
+    AI_FEEDBACK_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS,"PORTFOLIO-003","오늘 AI 개선 사용량을 모두 사용했습니다. 내일 다시 시도해 주세요."),
 
     // Bookmark
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "BOOKMARK-001", "북마크를 찾을 수 없습니다."),
