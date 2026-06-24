@@ -304,7 +304,7 @@ public class PortfolioService {
                 .shareUrl(shareUrl)
                 .build();
     }
-
+    @Transactional(readOnly = true)
     public SharedPortfolioResponse getSharePortfolio(String shareToken) {
         PortfolioEntity portfolioEntity = portfolioRepository.findByShareToken(shareToken)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_NOT_FOUND));
@@ -332,6 +332,9 @@ public class PortfolioService {
             return SharedPortfolioResponse.builder()
                     .id(portfolioEntity.getId())
                     .projectName(portfolioEntity.getProject().getTitle())
+                    .projectPeriod(portfolioEntity.getProjectPeriod())
+                    .teamSize(portfolioEntity.getTeamSize())
+                    .primaryRole(portfolioEntity.getPrimaryRole())
                     .overview(portfolioEntity.getOverview())
                     .roles(portfolioEntity.getRoles())
                     .techStack(techStack)

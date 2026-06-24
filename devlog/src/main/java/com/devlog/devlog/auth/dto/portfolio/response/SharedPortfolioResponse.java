@@ -18,6 +18,9 @@ import java.util.List;
 public class SharedPortfolioResponse {
     private Long id;
     private String projectName;
+    private String projectPeriod;
+    private String teamSize;
+    private String primaryRole;
     private String overview;
     private String roles;
     private List<String> techStack;
