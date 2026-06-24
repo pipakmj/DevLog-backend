@@ -1,5 +1,6 @@
 package com.devlog.devlog.global.common;
 
+import com.devlog.devlog.global.exception.AiFeedbackLimitException;
 import com.devlog.devlog.global.exception.BusinessException;
 import com.devlog.devlog.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,18 @@ public class RateLimitService {
 
                 if (used != null && used > dailyLimit) {
                         redisTemplate.opsForValue().decrement(key);
+
+                        // AI 피드백 전용 예외 처리
+                        if (errorCode == ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED) {
+                                throw new AiFeedbackLimitException(
+                                                UsageLimitResponse.builder()
+                                                                .dailyLimit(dailyLimit)
+                                                                .used(dailyLimit)
+                                                                .remaining(0)
+                                                                .resetAt(nextMidnight())
+                                                                .build());
+                        }
+
                         throw new BusinessException(errorCode);
                 }
 
