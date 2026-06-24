@@ -35,9 +35,10 @@ public class GitAnalyzeController {
         String userEmail = authentication.getName();
         String limitKey = RATE_LIMIT_PREFIX + userEmail;
 
-        String countStr = redisTemplate.opsForValue().get(limitKey);
-        int count = countStr != null ? Integer.parseInt(countStr) : 0;
-
+       Long count = redisTemplate.opsForValue().increment(limitKey);
+       if(count == 1){
+           redisTemplate.expire(limitKey, Duration.ofDays(5));
+       }
         if (count >= MAX_REQUEST_LIMIT)
             throw new BusinessException(ErrorCode.API_RATE_LIMIT_EXCEEDED);
 
