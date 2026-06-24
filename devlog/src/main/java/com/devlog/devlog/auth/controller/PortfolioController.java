@@ -81,21 +81,20 @@ public class PortfolioController {
                         @RequestBody AiFeedbackRequest request) {
                 String userEmail = authentication.getName();
 
-                rateLimitService.validateLimit(
+                UsageLimitResponse usageLimit = rateLimitService.checkAndIncrement(
                                 RATE_LIMIT_PREFIX,
                                 userEmail,
                                 MAX_REQUEST_LIMIT,
                                 ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED);
 
-                AiFeedbackResponse response = portfolioService.createAiFeedback(userEmail, request);
-
-                UsageLimitResponse usageLimit = rateLimitService.consume(
-                                RATE_LIMIT_PREFIX,
-                                userEmail,
-                                MAX_REQUEST_LIMIT);
-                response.setUsageLimit(usageLimit);
-
-                return ResponseEntity.ok(ApiResponse.success("AI 진단 성공", response));
+                try {
+                        AiFeedbackResponse response = portfolioService.createAiFeedback(userEmail, request);
+                        response.setUsageLimit(usageLimit);
+                        return ResponseEntity.ok(ApiResponse.success("AI 진단 성공", response));
+                } catch (Exception e) {
+                        rateLimitService.rollback(RATE_LIMIT_PREFIX, userEmail);
+                        throw e;
+                }
         }
 
         @PostMapping(value = "/portfolios/{portfolioId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
