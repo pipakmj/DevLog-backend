@@ -47,8 +47,17 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+        showStandardStreams = true
+    }
 }
