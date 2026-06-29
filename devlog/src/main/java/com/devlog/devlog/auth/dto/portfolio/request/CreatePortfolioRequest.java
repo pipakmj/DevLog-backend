@@ -4,12 +4,14 @@ import com.devlog.devlog.auth.dto.portfolio.FeatureDTO;
 import com.devlog.devlog.auth.dto.portfolio.PortfolioImageDTO;
 import com.devlog.devlog.auth.dto.portfolio.TroubleshootDTO;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePortfolioRequest {
