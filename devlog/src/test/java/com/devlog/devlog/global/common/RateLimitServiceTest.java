@@ -11,10 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RateLimtService 단위테스트")
@@ -41,5 +40,26 @@ public class RateLimitServiceTest {
         )).isInstanceOf(AiFeedbackLimitException.class);
 
         verify(valueOperations, times(1)).decrement(prefix + email);
+    }
+
+    @Test
+    @DisplayName("성공: 일일제한치(5회) 이내 정상 요청 시 남은 횟수를 포함한 성공 응답이 반환된다.")
+    void checkAndIncrement_Success_UnderLimit() {
+        String prefix = "portfolio_limit";
+        String email = "test@test.com";
+        int limit = 5;
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(prefix + email)).thenReturn(3L);
+
+        UsageLimitResponse response = rateLimitService.checkAndIncrement(
+                prefix, email, limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED
+        );
+
+        assertThat(response.getDailyLimit()).isEqualTo(5);
+        assertThat(response.getUsed()).isEqualTo(3);
+        assertThat(response.getRemaining()).isEqualTo(2);
+
+        verify(valueOperations, never()).decrement(anyString());
     }
 }
