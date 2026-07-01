@@ -75,6 +75,46 @@ public class PortfolioServiceTest {
 
             verify(portfolioRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("성공: 본인의 프로젝트로 포트폴리오를 생성 시 필수 필드가 채워진 정상 요청은 성공적으로 저장된다.")
+        void createPortfolio_Success() throws Exception {
+            String userEmail = "test@test.com";
+            UserEntity me = UserEntity.builder().email(userEmail).build();
+            ReflectionTestUtils.setField(me, "id", 1);
+            ProjectEntity myProject = ProjectEntity.builder()
+                    .title("내 프로젝트")
+                    .userEntity(me)
+                    .build();
+
+            CreatePortfolioRequest request = CreatePortfolioRequest.builder()
+                    .projectId(10L)
+                    .overview("내 포트폴리오 개요입니다")
+                    .roles("백엔드 역할")
+                    .techStack(java.util.List.of("Java", "Spring"))
+                    .features(
+                            java.util.List.of(new com.devlog.devlog.auth.dto.portfolio.FeatureDTO("로그인", "로그인 기능 구현")))
+                    .status("COMPLETED")
+                    .build();
+
+            PortfolioEntity pretendSavedPortfolio = PortfolioEntity.builder()
+                    .project(myProject)
+                    .status("COMPLETED")
+                    .build();
+            ReflectionTestUtils.setField(pretendSavedPortfolio, "id", 100L);
+
+            when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(me));
+            when(projectRepository.findById(10L)).thenReturn(Optional.of(myProject));
+            when(portfolioRepository.save(any(PortfolioEntity.class))).thenReturn(pretendSavedPortfolio);
+
+            com.devlog.devlog.auth.dto.portfolio.response.PortfolioResponse response = portfolioService
+                    .createPortfolio(userEmail, request);
+
+            assertThat(response.getPortfolioId()).isEqualTo(100L);
+            assertThat(response.getStatus()).isEqualTo("COMPLETED");
+
+            verify(portfolioRepository, times(1)).save(any(PortfolioEntity.class));
+        }
     }
 
     @Nested
@@ -85,7 +125,7 @@ public class PortfolioServiceTest {
         void sharePortfolio_Success_ToPublic() {
             String userEmail = "test@test.com";
             UserEntity user = UserEntity.builder().email(userEmail).build();
-            ReflectionTestUtils.setField(user,"id", 1);
+            ReflectionTestUtils.setField(user, "id", 1);
 
             ProjectEntity myProject = ProjectEntity.builder().userEntity(user).build();
 
@@ -94,20 +134,20 @@ public class PortfolioServiceTest {
                     .isPublic(false)
                     .shareToken(null)
                     .build();
-            ReflectionTestUtils.setField(portfolio,"id",10L);
+            ReflectionTestUtils.setField(portfolio, "id", 10L);
 
             SharePortfolioRequest request = SharePortfolioRequest.builder().isPublic(true).build();
 
             when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
             when(portfolioRepository.findById(10L)).thenReturn(Optional.of(portfolio));
 
-            SharePortfolioResponse response = portfolioService.sharePortfolio(userEmail,10L, request);
+            SharePortfolioResponse response = portfolioService.sharePortfolio(userEmail, 10L, request);
 
             assertThat(response.isPublic()).isTrue();
             assertThat(response.getShareToken()).isNotNull();
             assertThat(response.getShareUrl()).contains(response.getShareToken());
 
-            verify(portfolioRepository,times(1)).save(portfolio);
+            verify(portfolioRepository, times(1)).save(portfolio);
         }
     }
 
@@ -119,10 +159,10 @@ public class PortfolioServiceTest {
         void deletePortfolio_Fail_UnauthorizedPortfolio() {
             String userEmail = "test@test.com";
             UserEntity me = UserEntity.builder().email(userEmail).build();
-            ReflectionTestUtils.setField(me,"id", 1);
+            ReflectionTestUtils.setField(me, "id", 1);
 
             UserEntity otherUser = UserEntity.builder().email("other@test.com").build();
-            ReflectionTestUtils.setField(otherUser,"id", 99);
+            ReflectionTestUtils.setField(otherUser, "id", 99);
 
             ProjectEntity otherProject = ProjectEntity.builder().userEntity(otherUser).build();
             PortfolioEntity otherPortfolio = PortfolioEntity.builder().project(otherProject).build();
@@ -134,7 +174,7 @@ public class PortfolioServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_PORTFOLIO_ACCESS);
 
-            verify(portfolioRepository,never()).delete(any());
+            verify(portfolioRepository, never()).delete(any());
         }
     }
 
