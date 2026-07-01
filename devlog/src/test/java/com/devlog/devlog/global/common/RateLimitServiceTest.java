@@ -36,8 +36,8 @@ public class RateLimitServiceTest {
         when(valueOperations.increment(prefix + email)).thenReturn(6L);
 
         assertThatThrownBy(() -> rateLimitService.checkAndIncrement(
-                prefix,email,limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED
-        )).isInstanceOf(AiFeedbackLimitException.class);
+                prefix, email, limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED))
+                .isInstanceOf(AiFeedbackLimitException.class);
 
         verify(valueOperations, times(1)).decrement(prefix + email);
     }
@@ -53,13 +53,44 @@ public class RateLimitServiceTest {
         when(valueOperations.increment(prefix + email)).thenReturn(3L);
 
         UsageLimitResponse response = rateLimitService.checkAndIncrement(
-                prefix, email, limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED
-        );
+                prefix, email, limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED);
 
         assertThat(response.getDailyLimit()).isEqualTo(5);
         assertThat(response.getUsed()).isEqualTo(3);
         assertThat(response.getRemaining()).isEqualTo(2);
 
         verify(valueOperations, never()).decrement(anyString());
+    }
+
+    @Test
+    @DisplayName("성공: 첫 요청 시 increment가 1이 되며 TTL(자정까지) 설정이 정상적으로 수행된다.")
+    void checkAndIncrement_Success_FirstRequest() {
+        String prefix = "portfolio_limit";
+        String email = "first@test.com";
+        int limit = 5;
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(prefix + email)).thenReturn(1L);
+
+        UsageLimitResponse response = rateLimitService.checkAndIncrement(
+                prefix, email, limit, ErrorCode.AI_FEEDBACK_DAILY_LIMIT_EXCEEDED);
+
+        assertThat(response.getUsed()).isEqualTo(1);
+        assertThat(response.getRemaining()).isEqualTo(4);
+
+        verify(stringRedisTemplate, times(1)).expire(eq(prefix + email), any());
+    }
+
+    @Test
+    @DisplayName("성공: rollback 메소드 직접 호출 시 decrement가 정확한 키로 한 번 호출된다.")
+    void rollback_Success() {
+        String prefix = "portfolio_limit";
+        String email = "rollback@test.com";
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+
+        rateLimitService.rollback(prefix, email);
+
+        verify(valueOperations, times(1)).decrement(prefix + email);
     }
 }
